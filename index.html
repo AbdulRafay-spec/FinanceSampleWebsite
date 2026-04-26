@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinEX — Funding for SMEs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #07070f;
+      --bg2:       #0d0d1a;
+      --border:    rgba(255,255,255,0.08);
+      --white:     #ffffff;
+      --muted:     rgba(255,255,255,0.55);
+      --purple:    #7c3aed;
+      --violet:    #a855f7;
+      --pink:      #ec4899;
+      --blue:      #3b82f6;
+      --grad:      linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%);
+      --grad-blue: linear-gradient(135deg, #3b82f6 0%, #7c3aed 100%);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── AMBIENT GLOWS ── */
+    .glow-1, .glow-2, .glow-3 {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { width: 600px; height: 600px; background: rgba(124,58,237,0.18); top: -150px; left: -150px; }
+    .glow-2 { width: 500px; height: 500px; background: rgba(236,72,153,0.12); top: 200px; right: -100px; }
+    .glow-3 { width: 700px; height: 700px; background: rgba(59,130,246,0.1); bottom: -200px; left: 30%; }
+
+    /* ── LAYOUT HELPERS ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+    .grad-text {
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ══════════════════════════════
+       NAV
+    ══════════════════════════════ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 32px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      background: rgba(7,7,15,0.6);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--grad);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: #fff;
+    }
+    .logo-name { font-size: 20px; font-weight: 900; color: var(--white); letter-spacing: -0.5px; }
+    .logo-name span { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta { display: flex; align-items: center; gap: 14px; }
+    .btn-ghost {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--violet); color: var(--violet); }
+    .btn-primary {
+      background: var(--grad);
+      border: none;
+      color: var(--white);
+      padding: 10px 24px;
+      border-radius: 10px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      box-shadow: 0 0 24px rgba(124,58,237,0.4);
+    }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ══════════════════════════════
+       HERO
+    ══════════════════════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: 72px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      width: 100%;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 13px;
+      color: var(--violet);
+      margin-bottom: 28px;
+    }
+    .hero-badge::before {
+      content: '✦';
+      font-size: 10px;
+    }
+    .hero h1 {
+      font-size: clamp(48px, 5.5vw, 74px);
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+    }
+    .hero-sub {
+      font-size: 17px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 40px;
+      font-weight: 700;
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .btn-lg {
+      padding: 16px 36px;
+      font-size: 16px;
+      border-radius: 14px;
+      box-shadow: 0 0 40px rgba(124,58,237,0.5);
+    }
+    .btn-outline-lg {
+      padding: 15px 34px;
+      font-size: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-outline-lg:hover { border-color: rgba(168,85,247,0.5); background: rgba(168,85,247,0.08); }
+    .hero-trust {
+      margin-top: 48px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .trust-avatars {
+      display: flex;
+    }
+    .trust-avatars span {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      margin-left: -8px;
+    }
+    .trust-avatars span:first-child { margin-left: 0; }
+    .av1 { background: linear-gradient(135deg,#7c3aed,#ec4899); }
+    .av2 { background: linear-gradient(135deg,#3b82f6,#7c3aed); }
+    .av3 { background: linear-gradient(135deg,#ec4899,#f59e0b); }
+    .av4 { background: linear-gradient(135deg,#10b981,#3b82f6); }
+    .trust-text { font-size: 13px; color: var(--muted); }
+    .trust-text strong { color: var(--white); }
+
+    /* ── DASHBOARD MOCKUP ── */
+    .hero-visual { position: relative; }
+    .dashboard {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .dash-topbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+    .dash-url {
+      margin: 0 auto;
+      background: rgba(255,255,255,0.06);
+      border-radius: 6px;
+      padding: 5px 20px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .dash-body { display: flex; height: 360px; }
+    .dash-sidebar {
+      width: 140px;
+      border-right: 1px solid var(--border);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .dash-logo {
+      font-size: 14px;
+      font-weight: 900;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+      padding: 0 4px;
+    }
+    .dash-nav-item {
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: default;
+      transition: background 0.2s;
+    }
+    .dash-nav-item.active {
+      background: rgba(124,58,237,0.2);
+      color: var(--violet);
+    }
+    .dash-nav-item:not(.active):hover { background: rgba(255,255,255,0.04); }
+    .dash-main { flex: 1; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .dash-header { font-size: 13px; color: var(--muted); }
+    .dash-header strong { color: var(--white); font-size: 16px; display: block; margin-bottom: 2px; }
+    .deal-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      gap: 12px;
+      cursor: default;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .deal-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(124,58,237,0.3); }
+    .deal-avatar {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    .deal-info { flex: 1; }
+    .deal-name { font-size: 12px; color: var(--white); }
+    .deal-type { font-size: 11px; color: var(--muted); }
+    .deal-badge {
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-hot { background: rgba(236,72,153,0.15); color: var(--pink); border: 1px solid rgba(236,72,153,0.25); }
+    .badge-warm { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+    .badge-new { background: rgba(59,130,246,0.12); color: var(--blue); border: 1px solid rgba(59,130,246,0.25); }
+    .deal-amount { font-size: 13px; color: var(--white); text-align: right; }
+    .dash-ai {
+      width: 200px;
+      border-left: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ai-label {
+      font-size: 11px;
+      color: var(--violet);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ai-label::before { content:'✦'; font-size:9px; }
+    .ai-msg {
+      background: rgba(124,58,237,0.1);
+      border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.5;
+    }
+    .ai-input {
+      margin-top: auto;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .hero-float-1, .hero-float-2 {
+      position: absolute;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 12px;
+      backdrop-filter: blur(10px);
+      animation: float 4s ease-in-out infinite;
+    }
+    .hero-float-1 {
+      bottom: -24px; left: -40px;
+      animation-delay: 0s;
+    }
+    .hero-float-2 {
+      top: -20px; right: -24px;
+      animation-delay: 2s;
+    }
+    .float-label { color: var(--muted); font-size: 11px; margin-bottom: 4px; }
+    .float-val { font-size: 18px; color: var(--white); }
+    .float-val span { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+
+    /* ══════════════════════════════
+       STATS BAND
+    ══════════════════════════════ */
+    .stats-band {
+      padding: 60px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      z-index: 1;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2px;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 32px 24px;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 8px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { font-size: 14px; color: var(--muted); }
+
+    /* ══════════════════════════════
+       FEATURES
+    ══════════════════════════════ */
+    .features { padding: 120px 0; position: relative; z-index: 1; }
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--violet);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .section-label::before { content:'——'; opacity:0.5; }
+    .section-title {
+      font-size: clamp(36px, 4vw, 56px);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+    }
+    .features-header { margin-bottom: 72px; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feat-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      transition: border-color 0.3s, background 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--grad);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .feat-card:hover {
+      border-color: rgba(168,85,247,0.4);
+      background: rgba(124,58,237,0.07);
+      transform: translateY(-4px);
+    }
+    .feat-card:hover::before { opacity: 0.04; }
+    .feat-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .feat-icon-purple { background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.3); }
+    .feat-icon-pink   { background: rgba(236,72,153,0.15); border: 1px solid rgba(236,72,153,0.25); }
+    .feat-icon-blue   { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.25); }
+    .feat-icon-teal   { background: rgba(20,184,166,0.15); border: 1px solid rgba(20,184,166,0.25); }
+    .feat-icon-amber  { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.25); }
+    .feat-icon-indigo { background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.25); }
+    .feat-title { font-size: 18px; margin-bottom: 12px; }
+    .feat-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+    /* ══════════════════════════════
+       HOW IT WORKS
+    ══════════════════════════════ */
+    .how { padding: 120px 0; background: var(--bg2); position: relative; z-index: 1; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); overflow: hidden; }
+    .how-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+    .steps { display: flex; flex-direction: column; gap: 0; margin-top: 48px; }
+    .step {
+      display: flex;
+      gap: 24px;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      transition: color 0.2s;
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      flex-shrink: 0;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.3);
+      color: var(--violet);
+    }
+    .step-content h3 { font-size: 18px; margin-bottom: 6px; }
+    .step-content p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+    .how-visual {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .pipeline-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .pipeline-card:hover { border-color: rgba(168,85,247,0.4); transform: translateX(6px); }
+    .pipe-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .pipe-info { flex: 1; }
+    .pipe-title { font-size: 14px; color: var(--white); margin-bottom: 2px; }
+    .pipe-sub { font-size: 12px; color: var(--muted); }
+    .pipe-status {
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 100px;
+    }
+    .pipe-status.funded { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+    .pipe-status.review { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+    .pipe-status.matched { background: rgba(168,85,247,0.15); color: var(--violet); border: 1px solid rgba(168,85,247,0.3); }
+    .pipe-progress { margin-top: 8px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+    .pipe-bar { height: 100%; border-radius: 4px; background: var(--grad); }
+
+    /* ══════════════════════════════
+       PARTNERS MARQUEE
+    ══════════════════════════════ */
+    .partners { padding: 80px 0; position: relative; z-index: 1; }
+    .partners-title { text-align: center; font-size: 14px; color: var(--muted); margin-bottom: 48px; letter-spacing: 1px; text-transform: uppercase; }
+    .marquee-wrap { overflow: hidden; }
+    .marquee-track {
+      display: flex;
+      gap: 0;
+      animation: marquee 28s linear infinite;
+      width: max-content;
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    .partner-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 32px;
+      border-right: 1px solid var(--border);
+      white-space: nowrap;
+      font-size: 16px;
+      color: rgba(255,255,255,0.4);
+      transition: color 0.2s;
+    }
+    .partner-chip:hover { color: var(--white); }
+    .partner-chip .chip-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ══════════════════════════════
+       TESTIMONIALS
+    ══════════════════════════════ */
+    .testimonials { padding: 120px 0; position: relative; z-index: 1; }
+    .testi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 72px; }
+    .testi-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .testi-card:hover { border-color: rgba(168,85,247,0.35); transform: translateY(-4px); }
+    .testi-stars { color: #f59e0b; font-size: 14px; letter-spacing: 2px; }
+    .testi-quote { font-size: 15px; color: rgba(255,255,255,0.8); line-height: 1.7; }
+    .testi-author { display: flex; align-items: center; gap: 14px; margin-top: auto; }
+    .testi-av {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .testi-name { font-size: 14px; color: var(--white); }
+    .testi-role { font-size: 12px; color: var(--muted); }
+
+    /* ══════════════════════════════
+       CTA BANNER
+    ══════════════════════════════ */
+    .cta-banner {
+      padding: 120px 0;
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+    }
+    .cta-inner {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(168,85,247,0.2);
+      border-radius: 28px;
+      padding: 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-inner::before {
+      content: '';
+      position: absolute;
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-inner h2 {
+      font-size: clamp(36px, 4.5vw, 60px);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .cta-inner p {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+      position: relative;
+    }
+    .cta-actions { display: flex; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; position: relative; }
+    .cta-note { font-size: 13px; color: var(--muted); margin-top: 20px; position: relative; }
+
+    /* ══════════════════════════════
+       FOOTER
+    ══════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 64px 0 40px;
+      position: relative;
+      z-index: 1;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 56px;
+    }
+    .footer-brand p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-top: 14px;
+      max-width: 280px;
+    }
+    .footer-col h4 { font-size: 14px; color: var(--white); margin-bottom: 20px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .footer-col ul a {
+      font-size: 14px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-col ul a:hover { color: var(--white); }
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .footer-socials { display: flex; gap: 14px; }
+    .social-btn {
+      width: 36px; height: 36px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      text-decoration: none;
+      color: var(--muted);
+    }
+    .social-btn:hover { border-color: var(--violet); background: rgba(124,58,237,0.1); color: var(--violet); }
+
+    /* ══════════════════════════════
+       SCROLL ANIMATIONS
+    ══════════════════════════════ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ══════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════ */
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-visual { display: none; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .how-inner { grid-template-columns: 1fr; }
+      .how-visual { display: none; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .testi-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+      .cta-inner { padding: 48px 28px; }
+    }
+    @media (max-width: 600px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ══════════════════════════════
+       VAPI VOICE WIDGET
+    ══════════════════════════════ */
+    #vapi-support-btn { display: none !important; }
+
+    .voice-widget {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 14px;
+    }
+    .voice-tooltip {
+      background: rgba(13,13,26,0.96);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--white);
+      white-space: nowrap;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      animation: slideUp 0.2s ease;
+      display: none;
+      pointer-events: none;
+    }
+    .voice-widget:hover .voice-tooltip { display: block; }
+    .voice-widget.call-open .voice-tooltip { display: none !important; }
+
+    .voice-panel {
+      background: rgba(10,10,20,0.97);
+      border: 1px solid rgba(168,85,247,0.35);
+      border-radius: 24px;
+      padding: 28px 24px;
+      width: 300px;
+      backdrop-filter: blur(24px);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .voice-panel.open {
+      display: flex;
+      animation: widgetSlideUp 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes widgetSlideUp {
+      from { opacity: 0; transform: translateY(20px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .vp-avatar-wrap { position: relative; width: 80px; height: 80px; }
+    .vp-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--grad);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 900; color: #fff;
+      position: relative; z-index: 1;
+    }
+    .vp-ring {
+      position: absolute; inset: -7px; border-radius: 50%;
+      border: 2px solid rgba(168,85,247,0.45);
+      animation: vpRingPulse 2s ease-in-out infinite;
+    }
+    .vp-ring-2 {
+      position: absolute; inset: -16px; border-radius: 50%;
+      border: 2px solid rgba(168,85,247,0.2);
+      animation: vpRingPulse 2s ease-in-out infinite 0.6s;
+    }
+    @keyframes vpRingPulse {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50%      { transform: scale(1.07); opacity: 0.45; }
+    }
+    .vp-ring.speaking, .vp-ring-2.speaking {
+      border-color: rgba(236,72,153,0.7);
+      animation: vpRingSpeak 0.55s ease-in-out infinite;
+    }
+    @keyframes vpRingSpeak {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.13); }
+    }
+
+    .vp-info { text-align: center; }
+    .vp-name { font-size: 17px; font-weight: 900; color: var(--white); margin-bottom: 5px; }
+    .vp-status {
+      font-size: 13px; color: var(--muted);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+    }
+    .vp-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--muted); flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .vp-dot.connecting { background: #f59e0b; animation: vpBlink 1s infinite; }
+    .vp-dot.active     { background: #10b981; }
+    .vp-dot.speaking   { background: var(--pink); }
+    @keyframes vpBlink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+    .vp-visualizer {
+      display: flex; align-items: center; justify-content: center;
+      gap: 3px; height: 36px; width: 100%;
+    }
+    .vp-bar {
+      width: 4px; border-radius: 4px;
+      background: var(--grad);
+      height: 4px; transition: height 0.08s ease;
+    }
+    .vp-bar.idle { animation: vpBarIdle 1.5s ease-in-out infinite; }
+    .vp-bar:nth-child(1),.vp-bar:nth-child(9) { animation-delay: 0s; }
+    .vp-bar:nth-child(2),.vp-bar:nth-child(8) { animation-delay: 0.12s; }
+    .vp-bar:nth-child(3),.vp-bar:nth-child(7) { animation-delay: 0.24s; }
+    .vp-bar:nth-child(4),.vp-bar:nth-child(6) { animation-delay: 0.36s; }
+    .vp-bar:nth-child(5) { animation-delay: 0.48s; }
+    @keyframes vpBarIdle {
+      0%,100% { height: 4px; } 50% { height: 12px; }
+    }
+
+    .vp-end-btn {
+      width: 100%; padding: 13px;
+      border-radius: 13px;
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.28);
+      color: #ef4444;
+      font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .vp-end-btn:hover { background: rgba(239,68,68,0.22); border-color: rgba(239,68,68,0.5); }
+    .vp-hint { font-size: 11px; color: rgba(255,255,255,0.3); text-align: center; }
+
+    .voice-trigger {
+      width: 62px; height: 62px; border-radius: 50%;
+      background: var(--grad); border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 0 rgba(124,58,237,0.5), 0 8px 28px rgba(124,58,237,0.45);
+      animation: vpTriggerPulse 2.8s ease-in-out infinite;
+      transition: transform 0.2s;
+      position: relative;
+    }
+    .voice-trigger:hover { transform: scale(1.08); }
+    .voice-trigger svg { width: 25px; height: 25px; stroke: #fff; pointer-events: none; }
+    .voice-trigger.active {
+      animation: vpTriggerActive 1s ease-in-out infinite;
+      box-shadow: 0 0 0 0 rgba(236,72,153,0.6), 0 8px 28px rgba(236,72,153,0.5);
+    }
+    @keyframes vpTriggerPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.5), 0 8px 28px rgba(124,58,237,0.45); }
+      50%      { box-shadow: 0 0 0 14px rgba(124,58,237,0), 0 8px 28px rgba(124,58,237,0.45); }
+    }
+    @keyframes vpTriggerActive {
+      0%,100% { box-shadow: 0 0 0 0 rgba(236,72,153,0.6), 0 8px 28px rgba(236,72,153,0.5); }
+      50%      { box-shadow: 0 0 0 18px rgba(236,72,153,0), 0 8px 28px rgba(236,72,153,0.5); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient glows -->
+  <div class="glow-1"></div>
+  <div class="glow-2"></div>
+  <div class="glow-3"></div>
+
+  <!-- ══ NAV ══ -->
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-logo" href="#">
+        <div class="logo-icon">F</div>
+        <span class="logo-name">Fin<span>EX</span></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#">Solutions</a></li>
+        <li><a href="#">Investors</a></li>
+        <li><a href="#">Partners</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">About</a></li>
+      </ul>
+      <div class="nav-cta">
+        <button class="btn-ghost">Sign In</button>
+        <button class="btn-primary">Apply for Funding</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ HERO ══ -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content reveal">
+          <div class="hero-badge">AI-Powered Funding Platform</div>
+          <h1>
+            Your business.<br />
+            <span class="grad-text">Fully funded.</span><br />
+            Finally.
+          </h1>
+          <p class="hero-sub">
+            FinEX connects SMEs with the right Venture Capitalists and Channel Partners — fast, intelligent, and built for businesses that move.
+          </p>
+          <div class="hero-actions">
+            <button class="btn-primary btn-lg">Get Funded Now</button>
+            <button class="btn-outline-lg">See How It Works</button>
+          </div>
+          <div class="hero-trust">
+            <div class="trust-avatars">
+              <span class="av1">A</span>
+              <span class="av2">K</span>
+              <span class="av3">M</span>
+              <span class="av4">S</span>
+            </div>
+            <p class="trust-text"><strong>500+ SMEs funded</strong> through our network</p>
+          </div>
+        </div>
+
+        <div class="hero-visual reveal">
+          <div class="dashboard">
+            <div class="dash-topbar">
+              <div class="dot dot-r"></div>
+              <div class="dot dot-y"></div>
+              <div class="dot dot-g"></div>
+              <div class="dash-url">app.finex.io</div>
+            </div>
+            <div class="dash-body">
+              <div class="dash-sidebar">
+                <div class="dash-logo">FinEX</div>
+                <div class="dash-nav-item active">◈ &nbsp;Deals</div>
+                <div class="dash-nav-item">⬡ &nbsp;Pipeline</div>
+                <div class="dash-nav-item">✉ &nbsp;Outreach</div>
+                <div class="dash-nav-item">⬟ &nbsp;Partners</div>
+                <div class="dash-nav-item">◎ &nbsp;Analytics</div>
+              </div>
+              <div class="dash-main">
+                <div class="dash-header">
+                  <strong>Active Deals</strong>
+                  12 opportunities · £4.2M pipeline
+                </div>
+                <div class="deal-row">
+                  <div class="deal-avatar" style="background:linear-gradient(135deg,#7c3aed,#ec4899)">N</div>
+                  <div class="deal-info">
+                    <div class="deal-name">NovaTech Solutions</div>
+                    <div class="deal-type">Series A · SaaS</div>
+                  </div>
+                  <div class="deal-badge badge-hot">Hot</div>
+                  <div class="deal-amount">£850K</div>
+                </div>
+                <div class="deal-row">
+                  <div class="deal-avatar" style="background:linear-gradient(135deg,#3b82f6,#7c3aed)">G</div>
+                  <div class="deal-info">
+                    <div class="deal-name">GreenPath Logistics</div>
+                    <div class="deal-type">Seed · CleanTech</div>
+                  </div>
+                  <div class="deal-badge badge-warm">Warm</div>
+                  <div class="deal-amount">£500K</div>
+                </div>
+                <div class="deal-row">
+                  <div class="deal-avatar" style="background:linear-gradient(135deg,#ec4899,#f59e0b)">P</div>
+                  <div class="deal-info">
+                    <div class="deal-name">PulseHealth AI</div>
+                    <div class="deal-type">Pre-Seed · HealthTech</div>
+                  </div>
+                  <div class="deal-badge badge-new">New</div>
+                  <div class="deal-amount">£320K</div>
+                </div>
+              </div>
+              <div class="dash-ai">
+                <div class="ai-label">FinEX AI</div>
+                <div class="ai-msg">3 high-match VCs available for NovaTech. Recommend outreach today.</div>
+                <div class="ai-msg">Pipeline up 22% this month. 🎯</div>
+                <div class="ai-input">Ask me anything...</div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-float-1">
+            <div class="float-label">Total Funded</div>
+            <div class="float-val"><span>£124M+</span></div>
+          </div>
+          <div class="hero-float-2">
+            <div class="float-label">Match Rate</div>
+            <div class="float-val"><span>94%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ STATS ══ -->
+  <section class="stats-band">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item reveal">
+          <div class="stat-num">£124M+</div>
+          <div class="stat-label">Capital Deployed to SMEs</div>
+        </div>
+        <div class="stat-item reveal">
+          <div class="stat-num">500+</div>
+          <div class="stat-label">Businesses Funded</div>
+        </div>
+        <div class="stat-item reveal">
+          <div class="stat-num">200+</div>
+          <div class="stat-label">Active VC &amp; Channel Partners</div>
+        </div>
+        <div class="stat-item reveal">
+          <div class="stat-num">94%</div>
+          <div class="stat-label">Successful Match Rate</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FEATURES ══ -->
+  <section class="features">
+    <div class="container">
+      <div class="features-header reveal">
+        <div class="section-label">Platform Features</div>
+        <h2 class="section-title">Everything you need to<br /><span class="grad-text">secure your funding.</span></h2>
+        <p class="section-sub">From your first pitch deck to your final term sheet — FinEX handles it all, intelligently.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feat-card reveal">
+          <div class="feat-icon feat-icon-purple">🎯</div>
+          <h3 class="feat-title">Intelligent VC Matching</h3>
+          <p class="feat-desc">Our AI analyses your business profile, sector, and growth stage to surface the highest-probability investor matches instantly.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon feat-icon-pink">🤝</div>
+          <h3 class="feat-title">Channel Partner Network</h3>
+          <p class="feat-desc">Access a curated network of channel partners who open doors to strategic capital, distribution deals, and accelerator programmes.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon feat-icon-blue">📊</div>
+          <h3 class="feat-title">Live Deal Pipeline</h3>
+          <p class="feat-desc">Track every conversation, term sheet, and milestone in a real-time pipeline built for speed — not spreadsheets.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon feat-icon-teal">⚡</div>
+          <h3 class="feat-title">Pitch Deck Intelligence</h3>
+          <p class="feat-desc">AI-powered feedback on your pitch materials, benchmarked against thousands of successful SME funding rounds.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon feat-icon-amber">🔒</div>
+          <h3 class="feat-title">Secure Data Room</h3>
+          <p class="feat-desc">Share sensitive financials with investors through a bank-grade encrypted data room with granular permission controls.</p>
+        </div>
+        <div class="feat-card reveal">
+          <div class="feat-icon feat-icon-indigo">📈</div>
+          <h3 class="feat-title">Growth Analytics</h3>
+          <p class="feat-desc">Investor-ready dashboards that surface your key metrics, trend lines, and funding readiness score in real time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ HOW IT WORKS ══ -->
+  <section class="how">
+    <div class="container">
+      <div class="how-inner">
+        <div class="reveal">
+          <div class="section-label">How It Works</div>
+          <h2 class="section-title">From application<br />to <span class="grad-text">funded</span> —<br />in weeks, not years.</h2>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">01</div>
+              <div class="step-content">
+                <h3>Submit Your Profile</h3>
+                <p>Answer a short set of questions about your business, traction, and funding goals. Takes under 10 minutes.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">02</div>
+              <div class="step-content">
+                <h3>Get Matched</h3>
+                <p>Our engine scores your profile against 200+ active investors and channel partners to surface your best-fit opportunities.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">03</div>
+              <div class="step-content">
+                <h3>Connect &amp; Pitch</h3>
+                <p>FinEX facilitates warm introductions, manages scheduling, and keeps your deal pipeline moving forward.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">04</div>
+              <div class="step-content">
+                <h3>Close the Deal</h3>
+                <p>Term sheet to close — we're with you through due diligence, documentation, and getting capital in your account.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="how-visual reveal">
+          <div class="pipeline-card">
+            <div class="pipe-icon" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.25)">✅</div>
+            <div class="pipe-info">
+              <div class="pipe-title">NovaTech Solutions</div>
+              <div class="pipe-sub">Series A · Matched with 3 VCs</div>
+              <div class="pipe-progress"><div class="pipe-bar" style="width:85%"></div></div>
+            </div>
+            <div class="pipe-status funded">Funded</div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipe-icon" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.25)">⏳</div>
+            <div class="pipe-info">
+              <div class="pipe-title">GreenPath Logistics</div>
+              <div class="pipe-sub">Seed · Due Diligence Stage</div>
+              <div class="pipe-progress"><div class="pipe-bar" style="width:62%"></div></div>
+            </div>
+            <div class="pipe-status review">In Review</div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipe-icon" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3)">✦</div>
+            <div class="pipe-info">
+              <div class="pipe-title">PulseHealth AI</div>
+              <div class="pipe-sub">Pre-Seed · Investor Introductions</div>
+              <div class="pipe-progress"><div class="pipe-bar" style="width:40%"></div></div>
+            </div>
+            <div class="pipe-status matched">Matched</div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipe-icon" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.25)">🚀</div>
+            <div class="pipe-info">
+              <div class="pipe-title">BoltCommerce</div>
+              <div class="pipe-sub">Series B · Term Sheet Signed</div>
+              <div class="pipe-progress"><div class="pipe-bar" style="width:95%"></div></div>
+            </div>
+            <div class="pipe-status funded">Funded</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PARTNERS ══ -->
+  <section class="partners">
+    <div class="container">
+      <p class="partners-title">Trusted by investors &amp; partners across the UK &amp; Europe</p>
+    </div>
+    <div class="marquee-wrap">
+      <div class="marquee-track">
+        <!-- First set -->
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(124,58,237,0.2)">⬡</span>Apex Ventures</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(59,130,246,0.15)">◈</span>BlueSky Capital</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(236,72,153,0.15)">✦</span>Meridian Partners</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(16,185,129,0.15)">◎</span>Horizon Growth</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(245,158,11,0.15)">⬟</span>Vantage Fund</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(99,102,241,0.15)">◈</span>Atlas Equity</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(168,85,247,0.15)">✦</span>Zenith VC</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(20,184,166,0.15)">⬡</span>Forge Accelerator</div>
+        <!-- Duplicate for seamless loop -->
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(124,58,237,0.2)">⬡</span>Apex Ventures</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(59,130,246,0.15)">◈</span>BlueSky Capital</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(236,72,153,0.15)">✦</span>Meridian Partners</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(16,185,129,0.15)">◎</span>Horizon Growth</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(245,158,11,0.15)">⬟</span>Vantage Fund</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(99,102,241,0.15)">◈</span>Atlas Equity</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(168,85,247,0.15)">✦</span>Zenith VC</div>
+        <div class="partner-chip"><span class="chip-icon" style="background:rgba(20,184,166,0.15)">⬡</span>Forge Accelerator</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TESTIMONIALS ══ -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="reveal">
+        <div class="section-label">Success Stories</div>
+        <h2 class="section-title">SMEs that went from<br /><span class="grad-text">pitching to funded.</span></h2>
+      </div>
+      <div class="testi-grid">
+        <div class="testi-card reveal">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-quote">"FinEX matched us with a VC that truly understood our space. We closed our Series A in 6 weeks — something we'd been chasing for two years."</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#7c3aed,#ec4899)">J</div>
+            <div>
+              <div class="testi-name">James Okafor</div>
+              <div class="testi-role">CEO, NovaTech Solutions</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card reveal">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-quote">"The channel partner network alone is worth it. We got three strategic introductions on day one — one turned into an equity deal that changed everything."</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#3b82f6,#7c3aed)">S</div>
+            <div>
+              <div class="testi-name">Sarah Mitchell</div>
+              <div class="testi-role">Founder, GreenPath Logistics</div>
+            </div>
+          </div>
+        </div>
+        <div class="testi-card reveal">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-quote">"I was skeptical about AI-driven matching, but FinEX sent us to investors who had actually backed similar HealthTech businesses. The quality was outstanding."</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:linear-gradient(135deg,#ec4899,#f59e0b)">P</div>
+            <div>
+              <div class="testi-name">Priya Sharma</div>
+              <div class="testi-role">Co-Founder, PulseHealth AI</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ CTA ══ -->
+  <section class="cta-banner">
+    <div class="container">
+      <div class="cta-inner reveal">
+        <h2>Ready to secure your<br /><span class="grad-text">next funding round?</span></h2>
+        <p>Join 500+ SMEs who've already unlocked capital through the FinEX network. Your next investor is already waiting.</p>
+        <div class="cta-actions">
+          <button class="btn-primary btn-lg">Apply for Funding</button>
+          <button class="btn-outline-lg">Book a Demo</button>
+        </div>
+        <p class="cta-note">No placement fee until you close · Takes under 10 minutes to apply</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="nav-logo" href="#" style="text-decoration:none">
+            <div class="logo-icon">F</div>
+            <span class="logo-name">Fin<span>EX</span></span>
+          </a>
+          <p>FinEX connects ambitious SMEs with Venture Capitalists and Channel Partners who believe in building something bigger.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Solutions</h4>
+          <ul>
+            <li><a href="#">VC Matching</a></li>
+            <li><a href="#">Channel Partners</a></li>
+            <li><a href="#">Deal Pipeline</a></li>
+            <li><a href="#">Pitch Intelligence</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About FinEX</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Press</a></li>
+            <li><a href="#">Blog</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">FCA Compliance</a></li>
+            <li><a href="#">Security</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 FinEX Ltd. Authorised and regulated by the FCA.</span>
+        <div class="footer-socials">
+          <a class="social-btn" href="#">𝕏</a>
+          <a class="social-btn" href="#">in</a>
+          <a class="social-btn" href="#">▶</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══ VAPI VOICE WIDGET ══ -->
+  <div class="voice-widget" id="voiceWidget">
+    <div class="voice-tooltip">Talk to IQ, our AI advisor ✦</div>
+
+    <div class="voice-panel" id="voicePanel">
+      <div class="vp-avatar-wrap">
+        <div class="vp-ring"  id="vpRing"></div>
+        <div class="vp-ring-2" id="vpRing2"></div>
+        <div class="vp-avatar">IQ</div>
+      </div>
+      <div class="vp-info">
+        <div class="vp-name">IQ — FinEX AI Advisor</div>
+        <div class="vp-status">
+          <span class="vp-dot connecting" id="vpDot"></span>
+          <span id="vpStatusText">Connecting...</span>
+        </div>
+      </div>
+      <div class="vp-visualizer" id="vpVisualizer">
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+      </div>
+      <button class="vp-end-btn" id="vpEndBtn">End Call</button>
+      <p class="vp-hint">Your voice is processed securely in real time</p>
+    </div>
+
+    <button class="voice-trigger" id="voiceTrigger" title="Talk to IQ">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <line x1="12" y1="19" x2="12" y2="23"/>
+        <line x1="8"  y1="23" x2="16" y2="23"/>
+      </svg>
+    </button>
+  </div>
+
+  <script>
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          setTimeout(() => e.target.classList.add('visible'), i * 80);
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => io.observe(el));
+
+    // Nav scroll effect
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      nav.style.background = window.scrollY > 40
+        ? 'rgba(7,7,15,0.92)'
+        : 'rgba(7,7,15,0.6)';
+    });
+  </script>
+  <!-- ══ VAPI SDK + WIDGET LOGIC ══ -->
+  <!-- No credentials here. They live in .env on the server and are fetched at call-time only. -->
+  <script>
+    var vapiInstance    = null;
+    var vapiAssistantId = null;
+    var callActive      = false;
+
+    // Start loading the VAPI SDK in the background immediately — no credentials needed yet
+    var vapiSdkReady = new Promise(function(resolve, reject) {
+      (function(d, t) {
+        var g = document.createElement(t), s = d.getElementsByTagName(t)[0];
+        g.src   = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
+        g.defer = true; g.async = true;
+        g.onload = resolve;
+        g.onerror = reject;
+        s.parentNode.insertBefore(g, s);
+      })(document, 'script');
+    });
+
+    var widget       = document.getElementById('voiceWidget');
+    var panel        = document.getElementById('voicePanel');
+    var trigger      = document.getElementById('voiceTrigger');
+    var vpEndBtn     = document.getElementById('vpEndBtn');
+    var vpRing       = document.getElementById('vpRing');
+    var vpRing2      = document.getElementById('vpRing2');
+    var vpDot        = document.getElementById('vpDot');
+    var vpStatusText = document.getElementById('vpStatusText');
+    var bars         = Array.from(document.querySelectorAll('.vp-bar'));
+
+    function setStatus(state, text) {
+      vpDot.className      = 'vp-dot ' + state;
+      vpStatusText.textContent = text;
+    }
+
+    // Creates the VAPI instance once — credentials fetched from our backend, never from the HTML
+    function ensureVapi() {
+      if (vapiInstance) return Promise.resolve();
+
+      return Promise.all([
+        vapiSdkReady,
+        fetch('/api/vapi-config', { method: 'POST' })
+          .then(function(r) {
+            if (!r.ok) throw new Error('Server returned ' + r.status);
+            return r.json();
+          })
+      ]).then(function(results) {
+        var cfg = results[1];
+        vapiAssistantId = cfg.assistant;
+
+        vapiInstance = window.vapiSDK.run({
+          apiKey:    cfg.key,
+          assistant: cfg.assistant,
+          config: { position: 'bottom-right', offset: '-9999px', width: '0px', height: '0px' }
+        });
+
+        bindVapiEvents();
+      });
+    }
+
+    function openPanel() {
+      panel.classList.add('open');
+      widget.classList.add('call-open');
+      trigger.classList.add('active');
+      setStatus('connecting', 'Connecting...');
+      bars.forEach(function(b) { b.classList.add('idle'); b.style.height = ''; });
+
+      ensureVapi()
+        .then(function() { vapiInstance.start(vapiAssistantId); })
+        .catch(function(err) {
+          console.error('Failed to start call:', err);
+          setStatus('', 'Connection failed — try again');
+        });
+    }
+
+    function closePanel() {
+      panel.classList.remove('open');
+      widget.classList.remove('call-open');
+      trigger.classList.remove('active');
+      vpRing.classList.remove('speaking');
+      vpRing2.classList.remove('speaking');
+      bars.forEach(function(b) { b.classList.add('idle'); b.style.height = ''; });
+    }
+
+    trigger.addEventListener('click', function() {
+      if (panel.classList.contains('open')) {
+        if (callActive && vapiInstance) vapiInstance.stop();
+        closePanel();
+      } else {
+        openPanel();
+      }
+    });
+
+    vpEndBtn.addEventListener('click', function() {
+      if (callActive && vapiInstance) vapiInstance.stop();
+      closePanel();
+    });
+
+    function bindVapiEvents() {
+      vapiInstance.on('call-start', function() {
+        callActive = true;
+        setStatus('active', 'Connected — IQ is listening');
+      });
+
+      vapiInstance.on('call-end', function() {
+        callActive = false;
+        closePanel();
+      });
+
+      vapiInstance.on('speech-start', function() {
+        setStatus('speaking', 'IQ is speaking...');
+        vpRing.classList.add('speaking');
+        vpRing2.classList.add('speaking');
+        bars.forEach(function(b) { b.classList.remove('idle'); });
+      });
+
+      vapiInstance.on('speech-end', function() {
+        setStatus('active', 'Listening...');
+        vpRing.classList.remove('speaking');
+        vpRing2.classList.remove('speaking');
+        bars.forEach(function(b) { b.classList.add('idle'); b.style.height = ''; });
+      });
+
+      vapiInstance.on('volume-level', function(vol) {
+        bars.forEach(function(b, i) {
+          var spread = Math.abs(i - 4);
+          var h = Math.max(4, Math.min(34, vol * 190 - spread * 3));
+          b.style.height = h + 'px';
+        });
+      });
+
+      vapiInstance.on('error', function(err) {
+        console.error('VAPI error:', err);
+        setStatus('', 'Error — please try again');
+        callActive = false;
+      });
+    }
+  </script>
+</body>
+</html>
