@@ -1,6 +1,13 @@
 {
   "version": 2,
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/$1" }
+  "builds": [
+    { "src": "public/index.html", "use": "@vercel/static" },
+    { "src": "api/vapi-config.js", "use": "@vercel/node" },
+    { "src": "api/health.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/vapi-config", "dest": "/api/vapi-config.js" },
+    { "src": "/api/health", "dest": "/api/health.js" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }

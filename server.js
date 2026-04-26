@@ -6,7 +6,7 @@ const path    = require('path');
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Returns VAPI connection config to the browser.
 // The public key is intentionally limited — it can only start voice calls,
