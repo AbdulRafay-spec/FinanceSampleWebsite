@@ -24,7 +24,21 @@ app.post('/api/vapi-config', (req, res) => {
   res.json({ key, assistant });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`\n  FinEX server running → http://localhost:${PORT}\n`);
+// Quick health check — open http://localhost:3000/api/health in your browser to verify .env is loaded
+app.get('/api/health', (req, res) => {
+  res.json({
+    vapi_public_key_set:   !!process.env.VAPI_PUBLIC_KEY,
+    vapi_assistant_id_set: !!process.env.VAPI_ASSISTANT_ID,
+  });
 });
+
+// Export app for Vercel's serverless runtime
+module.exports = app;
+
+// Local development only — Vercel ignores this
+if (require.main === module) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`\n  FinEX server running → http://localhost:${PORT}\n`);
+  });
+}
