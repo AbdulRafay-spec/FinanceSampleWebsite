@@ -2,12 +2,16 @@
   "version": 2,
   "builds": [
     { "src": "public/index.html", "use": "@vercel/static" },
-    { "src": "api/vapi-config.js", "use": "@vercel/node" },
-    { "src": "api/health.js", "use": "@vercel/node" }
+    { "src": "public/js/**",      "use": "@vercel/static" },
+    { "src": "api/vapi-config.js",  "use": "@vercel/node" },
+    { "src": "api/health.js",       "use": "@vercel/node" },
+    { "src": "api/retell-call.js",  "use": "@vercel/node" }
   ],
   "routes": [
-    { "src": "/api/vapi-config", "dest": "/api/vapi-config.js" },
-    { "src": "/api/health", "dest": "/api/health.js" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+    { "src": "/api/vapi-config",  "dest": "/api/vapi-config.js" },
+    { "src": "/api/health",       "dest": "/api/health.js" },
+    { "src": "/api/retell-call",  "dest": "/api/retell-call.js" },
+    { "src": "/js/(.*)",          "dest": "/public/js/$1" },
+    { "src": "/(.*)",             "dest": "/public/index.html" }
   ]
 }

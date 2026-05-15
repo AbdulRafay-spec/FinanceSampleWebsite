@@ -912,6 +912,36 @@
       0%,100% { box-shadow: 0 0 0 0 rgba(236,72,153,0.6), 0 8px 28px rgba(236,72,153,0.5); }
       50%      { box-shadow: 0 0 0 18px rgba(236,72,153,0), 0 8px 28px rgba(236,72,153,0.5); }
     }
+
+    /* ══════════════════════════════
+       RETELL VOICE WIDGET overrides
+    ══════════════════════════════ */
+    .retell-widget { right: 106px; }
+    .retell-widget .voice-panel   { border-color: rgba(59,130,246,0.35); }
+    .retell-widget .vp-avatar     { background: var(--grad-blue); }
+    .retell-widget .vp-ring       { border-color: rgba(59,130,246,0.45); }
+    .retell-widget .vp-ring-2     { border-color: rgba(59,130,246,0.2); }
+    .retell-widget .vp-ring.speaking,
+    .retell-widget .vp-ring-2.speaking { border-color: rgba(59,130,246,0.8); animation-name: vpRingSpeak; }
+    .retell-widget .vp-bar        { background: var(--grad-blue); }
+
+    .retell-trigger {
+      background: var(--grad-blue) !important;
+      box-shadow: 0 0 0 0 rgba(59,130,246,0.5), 0 8px 28px rgba(59,130,246,0.45) !important;
+      animation-name: retellTriggerPulse !important;
+    }
+    .retell-trigger.active {
+      animation-name: retellTriggerActive !important;
+      box-shadow: 0 0 0 0 rgba(59,130,246,0.6), 0 8px 28px rgba(59,130,246,0.5) !important;
+    }
+    @keyframes retellTriggerPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.5), 0 8px 28px rgba(59,130,246,0.45); }
+      50%      { box-shadow: 0 0 0 14px rgba(59,130,246,0), 0 8px 28px rgba(59,130,246,0.45); }
+    }
+    @keyframes retellTriggerActive {
+      0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.6), 0 8px 28px rgba(59,130,246,0.5); }
+      50%      { box-shadow: 0 0 0 18px rgba(59,130,246,0), 0 8px 28px rgba(59,130,246,0.5); }
+    }
   </style>
 </head>
 <body>
@@ -1301,6 +1331,46 @@
     </div>
   </footer>
 
+  <!-- ══ RETELL VOICE WIDGET ══ -->
+  <div class="voice-widget retell-widget" id="retellWidget">
+    <div class="voice-tooltip">Talk to Grace, AI SDR ✦</div>
+
+    <div class="voice-panel" id="retellPanel">
+      <div class="vp-avatar-wrap">
+        <div class="vp-ring"   id="retellRing"></div>
+        <div class="vp-ring-2" id="retellRing2"></div>
+        <div class="vp-avatar">G</div>
+      </div>
+      <div class="vp-info">
+        <div class="vp-name">Grace — FinEX AI SDR</div>
+        <div class="vp-status">
+          <span class="vp-dot connecting" id="retellDot"></span>
+          <span id="retellStatusText">Connecting...</span>
+        </div>
+      </div>
+      <div class="vp-visualizer" id="retellVisualizer">
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+        <div class="vp-bar idle"></div>
+      </div>
+      <button class="vp-end-btn" id="retellEndBtn">End Call</button>
+      <p class="vp-hint">Your voice is processed securely in real time</p>
+    </div>
+
+    <button class="voice-trigger retell-trigger" id="retellTrigger" title="Talk to Grace">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+        <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+      </svg>
+    </button>
+  </div>
+
   <!-- ══ VAPI VOICE WIDGET ══ -->
   <div class="voice-widget" id="voiceWidget">
     <div class="voice-tooltip">Talk to IQ, our AI advisor ✦</div>
@@ -1432,6 +1502,12 @@
     }
 
     function openPanel() {
+      // Close Retell panel if open
+      if (window.closeRetellPanel && document.getElementById('retellPanel').classList.contains('open')) {
+        if (window.retellCallActive && window.retellClient) window.retellClient.stopCall();
+        window.closeRetellPanel();
+      }
+
       panel.classList.add('open');
       widget.classList.add('call-open');
       trigger.classList.add('active');
@@ -1508,6 +1584,138 @@
         console.error('VAPI error:', err);
         setStatus('', 'Error — please try again');
         callActive = false;
+      });
+    }
+  </script>
+
+  <!-- ══ RETELL SDK + WIDGET LOGIC ══ -->
+  <!-- retell-sdk.js is loaded lazily on first click (523 KB — includes livekit WebRTC) -->
+  <!-- No credentials here. RETELL_API_KEY lives in .env and is used server-side only. -->
+  <script>
+    var retellClient     = null;
+    var retellCallActive = false;
+    var retellSdkLoaded  = false;
+    var retellSdkPromise = null;
+
+    var retellWidget    = document.getElementById('retellWidget');
+    var retellPanel     = document.getElementById('retellPanel');
+    var retellTrigger   = document.getElementById('retellTrigger');
+    var retellEndBtn    = document.getElementById('retellEndBtn');
+    var retellRing      = document.getElementById('retellRing');
+    var retellRing2     = document.getElementById('retellRing2');
+    var retellDot       = document.getElementById('retellDot');
+    var retellStatusTxt = document.getElementById('retellStatusText');
+    var retellBars      = Array.from(document.querySelectorAll('#retellVisualizer .vp-bar'));
+
+    function setRetellStatus(cls, text) {
+      retellDot.className = 'vp-dot' + (cls ? ' ' + cls : '');
+      retellStatusTxt.textContent = text;
+    }
+
+    function loadRetellSdk() {
+      if (retellSdkLoaded) return Promise.resolve();
+      if (retellSdkPromise) return retellSdkPromise;
+      retellSdkPromise = new Promise(function(resolve, reject) {
+        var s = document.createElement('script');
+        s.src = '/js/retell-sdk.js';
+        s.onload  = function() { retellSdkLoaded = true; resolve(); };
+        s.onerror = function() { reject(new Error('[FinEX] Retell SDK script failed to load')); };
+        document.head.appendChild(s);
+      });
+      return retellSdkPromise;
+    }
+
+    function openRetellPanel() {
+      // Close VAPI panel if open
+      if (panel.classList.contains('open')) {
+        if (callActive && vapiInstance) vapiInstance.stop();
+        closePanel();
+      }
+
+      retellPanel.classList.add('open');
+      retellWidget.classList.add('call-open');
+      retellTrigger.classList.add('active');
+      setRetellStatus('connecting', 'Connecting...');
+      retellBars.forEach(function(b) { b.classList.add('idle'); b.style.height = ''; });
+
+      Promise.all([
+        loadRetellSdk(),
+        fetch('/api/retell-call', { method: 'POST' })
+          .then(function(r) {
+            if (!r.ok) return r.json().then(function(body) {
+              throw new Error('[FinEX] /api/retell-call returned ' + r.status + ': ' + (body.error || 'unknown'));
+            });
+            return r.json();
+          })
+          .catch(function(e) {
+            if (e.message.startsWith('[FinEX]')) throw e;
+            throw new Error('[FinEX] Could not reach /api/retell-call — is the server running? ' + e.message);
+          })
+      ]).then(function(results) {
+        var data = results[1];
+        if (!retellClient) {
+          retellClient = new window.RetellSDK.RetellWebClient();
+          bindRetellEvents();
+        }
+        return retellClient.startCall({ accessToken: data.access_token });
+      }).catch(function(err) {
+        console.error('[FinEX] Retell call failed:', err.message || err);
+        setRetellStatus('', 'Error — please try again');
+        retellCallActive = false;
+      });
+    }
+
+    window.closeRetellPanel = function closeRetellPanel() {
+      retellPanel.classList.remove('open');
+      retellWidget.classList.remove('call-open');
+      retellTrigger.classList.remove('active');
+      retellRing.classList.remove('speaking');
+      retellRing2.classList.remove('speaking');
+    };
+
+    retellTrigger.addEventListener('click', function() {
+      if (retellPanel.classList.contains('open')) {
+        if (retellCallActive && retellClient) retellClient.stopCall();
+        window.closeRetellPanel();
+      } else {
+        openRetellPanel();
+      }
+    });
+
+    retellEndBtn.addEventListener('click', function() {
+      if (retellCallActive && retellClient) retellClient.stopCall();
+      window.closeRetellPanel();
+    });
+
+    function bindRetellEvents() {
+      retellClient.on('call_started', function() {
+        retellCallActive = true;
+        setRetellStatus('active', 'Connected — Grace is listening');
+      });
+
+      retellClient.on('call_ended', function() {
+        retellCallActive = false;
+        window.closeRetellPanel();
+      });
+
+      retellClient.on('agent_start_talking', function() {
+        setRetellStatus('speaking', 'Grace is speaking...');
+        retellRing.classList.add('speaking');
+        retellRing2.classList.add('speaking');
+        retellBars.forEach(function(b) { b.classList.remove('idle'); });
+      });
+
+      retellClient.on('agent_stop_talking', function() {
+        setRetellStatus('active', 'Listening...');
+        retellRing.classList.remove('speaking');
+        retellRing2.classList.remove('speaking');
+        retellBars.forEach(function(b) { b.classList.add('idle'); b.style.height = ''; });
+      });
+
+      retellClient.on('error', function(err) {
+        console.error('[FinEX] Retell error:', err);
+        setRetellStatus('', 'Error — please try again');
+        retellCallActive = false;
       });
     }
   </script>
