@@ -993,6 +993,18 @@
     }
     .rt-calendly:hover { opacity: 0.85; }
     .rt-calendly svg { flex-shrink: 0; }
+
+    .rt-booking-cta {
+      background: rgba(124,58,237,0.1);
+      border: 1px solid rgba(168,85,247,0.3);
+      border-radius: 14px;
+      padding: 14px 12px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .rt-booking-label {
+      font-size: 11px; color: var(--muted); text-align: center; font-weight: 700;
+    }
+    .rt-calendly-full { width: 100%; justify-content: center; margin-top: 0; }
   </style>
 </head>
 <body>
@@ -1541,6 +1553,23 @@
       window.closeRetellPanel();
     });
 
+    var CALENDLY_URL = 'https://calendly.com/abdulrafayikram988/arx-test';
+
+    var BOOKING_KEYWORDS = [
+      'calendly', 'appointment', 'booking link', 'meeting link',
+      'book a meeting', 'book a call', 'book a demo',
+      'schedule a meeting', 'schedule a call', 'schedule a demo',
+      'set up a meeting', 'set up a call', 'arrange a meeting'
+    ];
+
+    function bookingMentioned(transcript) {
+      return transcript.some(function(item) {
+        if (item.role !== 'agent') return false;
+        var text = (item.content || '').toLowerCase();
+        return BOOKING_KEYWORDS.some(function(kw) { return text.includes(kw); });
+      });
+    }
+
     function formatTranscriptText(text) {
       var escaped = text
         .replace(/&/g, '&amp;')
@@ -1557,6 +1586,15 @@
 
       return escaped;
     }
+
+    var CALENDLY_BTN =
+      '<div class="rt-booking-cta">' +
+        '<p class="rt-booking-label">Tap below to book your meeting</p>' +
+        '<a href="' + 'CALENDLY_URL_PLACEHOLDER' + '" target="_blank" rel="noopener" class="rt-calendly rt-calendly-full">' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+          'Book Your Meeting' +
+        '</a>' +
+      '</div>';
 
     function renderRetellTranscript(transcript) {
       var container = document.getElementById('retellTranscript');
@@ -1576,6 +1614,10 @@
                   '<div class="rt-bubble">' + content + '</div>' +
                 '</div>';
       });
+
+      if (bookingMentioned(transcript)) {
+        html += CALENDLY_BTN.replace('CALENDLY_URL_PLACEHOLDER', CALENDLY_URL);
+      }
 
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
