@@ -757,8 +757,6 @@
     /* ══════════════════════════════
        VAPI VOICE WIDGET
     ══════════════════════════════ */
-    #vapi-support-btn { display: none !important; }
-
     .voice-widget {
       position: fixed;
       bottom: 32px;
@@ -916,7 +914,6 @@
     /* ══════════════════════════════
        RETELL VOICE WIDGET overrides
     ══════════════════════════════ */
-    .retell-widget { right: 106px; }
     .retell-widget .voice-panel   { border-color: rgba(168,85,247,0.35); width: 320px; }
     .retell-widget .vp-avatar     { background: var(--grad); }
     .retell-widget .vp-ring       { border-color: rgba(168,85,247,0.45); }
@@ -1430,48 +1427,6 @@
     </button>
   </div>
 
-  <!-- ══ VAPI VOICE WIDGET ══ -->
-  <div class="voice-widget" id="voiceWidget">
-    <div class="voice-tooltip">Talk to IQ, our AI advisor ✦</div>
-
-    <div class="voice-panel" id="voicePanel">
-      <div class="vp-avatar-wrap">
-        <div class="vp-ring"  id="vpRing"></div>
-        <div class="vp-ring-2" id="vpRing2"></div>
-        <div class="vp-avatar">IQ</div>
-      </div>
-      <div class="vp-info">
-        <div class="vp-name">IQ — FinEX AI Advisor</div>
-        <div class="vp-status">
-          <span class="vp-dot connecting" id="vpDot"></span>
-          <span id="vpStatusText">Connecting...</span>
-        </div>
-      </div>
-      <div class="vp-visualizer" id="vpVisualizer">
-        <div class="vp-bar idle"></div>
-        <div class="vp-bar idle"></div>
-        <div class="vp-bar idle"></div>
-        <div class="vp-bar idle"></div>
-        <div class="vp-bar idle"></div>
-        <div class="vp-bar idle"></div>
-        <div class="vp-bar idle"></div>
-        <div class="vp-bar idle"></div>
-        <div class="vp-bar idle"></div>
-      </div>
-      <button class="vp-end-btn" id="vpEndBtn">End Call</button>
-      <p class="vp-hint">Your voice is processed securely in real time</p>
-    </div>
-
-    <button class="voice-trigger" id="voiceTrigger" title="Talk to IQ">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-        <line x1="12" y1="19" x2="12" y2="23"/>
-        <line x1="8"  y1="23" x2="16" y2="23"/>
-      </svg>
-    </button>
-  </div>
-
   <script>
     // Scroll reveal
     const reveals = document.querySelectorAll('.reveal');
@@ -1493,160 +1448,6 @@
         : 'rgba(7,7,15,0.6)';
     });
   </script>
-  <!-- ══ VAPI SDK + WIDGET LOGIC ══ -->
-  <!-- No credentials here. They live in .env on the server and are fetched at call-time only. -->
-  <script>
-    var vapiInstance    = null;
-    var vapiAssistantId = null;
-    var callActive      = false;
-
-    // Start loading the VAPI SDK in the background immediately — no credentials needed yet
-    var vapiSdkReady = new Promise(function(resolve, reject) {
-      (function(d, t) {
-        var g = document.createElement(t), s = d.getElementsByTagName(t)[0];
-        g.src   = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
-        g.defer = true; g.async = true;
-        g.onload = resolve;
-        g.onerror = reject;
-        s.parentNode.insertBefore(g, s);
-      })(document, 'script');
-    });
-
-    var widget       = document.getElementById('voiceWidget');
-    var panel        = document.getElementById('voicePanel');
-    var trigger      = document.getElementById('voiceTrigger');
-    var vpEndBtn     = document.getElementById('vpEndBtn');
-    var vpRing       = document.getElementById('vpRing');
-    var vpRing2      = document.getElementById('vpRing2');
-    var vpDot        = document.getElementById('vpDot');
-    var vpStatusText = document.getElementById('vpStatusText');
-    var bars         = Array.from(document.querySelectorAll('.vp-bar'));
-
-    function setStatus(state, text) {
-      vpDot.className      = 'vp-dot ' + state;
-      vpStatusText.textContent = text;
-    }
-
-    // Creates the VAPI instance once — credentials fetched from our backend, never from the HTML
-    function ensureVapi() {
-      if (vapiInstance) return Promise.resolve();
-
-      return Promise.all([
-        vapiSdkReady.catch(function(e) {
-          throw new Error('[FinEX] VAPI SDK script failed to load from CDN: ' + e);
-        }),
-        fetch('/api/vapi-config', { method: 'POST' })
-          .then(function(r) {
-            if (!r.ok) return r.json().then(function(body) {
-              throw new Error('[FinEX] /api/vapi-config returned ' + r.status + ': ' + (body.error || 'unknown'));
-            });
-            return r.json();
-          })
-          .catch(function(e) {
-            if (e.message.startsWith('[FinEX]')) throw e;
-            throw new Error('[FinEX] Could not reach server at /api/vapi-config — is the server running? ' + e.message);
-          })
-      ]).then(function(results) {
-        var cfg = results[1];
-        vapiAssistantId = cfg.assistant;
-
-        vapiInstance = window.vapiSDK.run({
-          apiKey:    cfg.key,
-          assistant: cfg.assistant,
-          config: { position: 'bottom-right', offset: '-9999px', width: '0px', height: '0px' }
-        });
-
-        bindVapiEvents();
-      });
-    }
-
-    function openPanel() {
-      // Close Retell panel if open
-      if (window.closeRetellPanel && document.getElementById('retellPanel').classList.contains('open')) {
-        if (window.retellCallActive && window.retellClient) window.retellClient.stopCall();
-        window.closeRetellPanel();
-      }
-
-      panel.classList.add('open');
-      widget.classList.add('call-open');
-      trigger.classList.add('active');
-      setStatus('connecting', 'Connecting...');
-      bars.forEach(function(b) { b.classList.add('idle'); b.style.height = ''; });
-
-      ensureVapi()
-        .then(function() {
-          return vapiInstance.start(vapiAssistantId);
-        })
-        .catch(function(err) {
-          console.error('[FinEX] Call failed:', err.message || err);
-          setStatus('', 'Connection failed — try again');
-        });
-    }
-
-    function closePanel() {
-      panel.classList.remove('open');
-      widget.classList.remove('call-open');
-      trigger.classList.remove('active');
-      vpRing.classList.remove('speaking');
-      vpRing2.classList.remove('speaking');
-      bars.forEach(function(b) { b.classList.add('idle'); b.style.height = ''; });
-    }
-
-    trigger.addEventListener('click', function() {
-      if (panel.classList.contains('open')) {
-        if (callActive && vapiInstance) vapiInstance.stop();
-        closePanel();
-      } else {
-        openPanel();
-      }
-    });
-
-    vpEndBtn.addEventListener('click', function() {
-      if (callActive && vapiInstance) vapiInstance.stop();
-      closePanel();
-    });
-
-    function bindVapiEvents() {
-      vapiInstance.on('call-start', function() {
-        callActive = true;
-        setStatus('active', 'Connected — IQ is listening');
-      });
-
-      vapiInstance.on('call-end', function() {
-        callActive = false;
-        closePanel();
-      });
-
-      vapiInstance.on('speech-start', function() {
-        setStatus('speaking', 'IQ is speaking...');
-        vpRing.classList.add('speaking');
-        vpRing2.classList.add('speaking');
-        bars.forEach(function(b) { b.classList.remove('idle'); });
-      });
-
-      vapiInstance.on('speech-end', function() {
-        setStatus('active', 'Listening...');
-        vpRing.classList.remove('speaking');
-        vpRing2.classList.remove('speaking');
-        bars.forEach(function(b) { b.classList.add('idle'); b.style.height = ''; });
-      });
-
-      vapiInstance.on('volume-level', function(vol) {
-        bars.forEach(function(b, i) {
-          var spread = Math.abs(i - 4);
-          var h = Math.max(4, Math.min(34, vol * 190 - spread * 3));
-          b.style.height = h + 'px';
-        });
-      });
-
-      vapiInstance.on('error', function(err) {
-        console.error('VAPI error:', err);
-        setStatus('', 'Error — please try again');
-        callActive = false;
-      });
-    }
-  </script>
-
   <!-- ══ RETELL SDK + WIDGET LOGIC ══ -->
   <!-- retell-sdk.js is loaded lazily on first click (523 KB — includes livekit WebRTC) -->
   <!-- No credentials here. RETELL_API_KEY lives in .env and is used server-side only. -->
@@ -1685,12 +1486,6 @@
     }
 
     function openRetellPanel() {
-      // Close VAPI panel if open
-      if (panel.classList.contains('open')) {
-        if (callActive && vapiInstance) vapiInstance.stop();
-        closePanel();
-      }
-
       retellPanel.classList.add('open');
       retellWidget.classList.add('call-open');
       retellTrigger.classList.add('active');
