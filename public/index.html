@@ -917,31 +917,85 @@
        RETELL VOICE WIDGET overrides
     ══════════════════════════════ */
     .retell-widget { right: 106px; }
-    .retell-widget .voice-panel   { border-color: rgba(59,130,246,0.35); }
-    .retell-widget .vp-avatar     { background: var(--grad-blue); }
-    .retell-widget .vp-ring       { border-color: rgba(59,130,246,0.45); }
-    .retell-widget .vp-ring-2     { border-color: rgba(59,130,246,0.2); }
+    .retell-widget .voice-panel   { border-color: rgba(168,85,247,0.35); width: 320px; }
+    .retell-widget .vp-avatar     { background: var(--grad); }
+    .retell-widget .vp-ring       { border-color: rgba(168,85,247,0.45); }
+    .retell-widget .vp-ring-2     { border-color: rgba(168,85,247,0.2); }
     .retell-widget .vp-ring.speaking,
-    .retell-widget .vp-ring-2.speaking { border-color: rgba(59,130,246,0.8); animation-name: vpRingSpeak; }
-    .retell-widget .vp-bar        { background: var(--grad-blue); }
+    .retell-widget .vp-ring-2.speaking { border-color: rgba(236,72,153,0.7); }
+    .retell-widget .vp-bar        { background: var(--grad); }
 
     .retell-trigger {
-      background: var(--grad-blue) !important;
-      box-shadow: 0 0 0 0 rgba(59,130,246,0.5), 0 8px 28px rgba(59,130,246,0.45) !important;
+      background: var(--grad) !important;
+      box-shadow: 0 0 0 0 rgba(124,58,237,0.5), 0 8px 28px rgba(124,58,237,0.45) !important;
       animation-name: retellTriggerPulse !important;
     }
     .retell-trigger.active {
       animation-name: retellTriggerActive !important;
-      box-shadow: 0 0 0 0 rgba(59,130,246,0.6), 0 8px 28px rgba(59,130,246,0.5) !important;
+      box-shadow: 0 0 0 0 rgba(236,72,153,0.6), 0 8px 28px rgba(236,72,153,0.5) !important;
     }
     @keyframes retellTriggerPulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.5), 0 8px 28px rgba(59,130,246,0.45); }
-      50%      { box-shadow: 0 0 0 14px rgba(59,130,246,0), 0 8px 28px rgba(59,130,246,0.45); }
+      0%,100% { box-shadow: 0 0 0 0 rgba(124,58,237,0.5), 0 8px 28px rgba(124,58,237,0.45); }
+      50%      { box-shadow: 0 0 0 14px rgba(124,58,237,0), 0 8px 28px rgba(124,58,237,0.45); }
     }
     @keyframes retellTriggerActive {
-      0%,100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.6), 0 8px 28px rgba(59,130,246,0.5); }
-      50%      { box-shadow: 0 0 0 18px rgba(59,130,246,0), 0 8px 28px rgba(59,130,246,0.5); }
+      0%,100% { box-shadow: 0 0 0 0 rgba(236,72,153,0.6), 0 8px 28px rgba(236,72,153,0.5); }
+      50%      { box-shadow: 0 0 0 18px rgba(236,72,153,0), 0 8px 28px rgba(236,72,153,0.5); }
     }
+
+    /* ── Transcript chat panel ── */
+    .retell-transcript {
+      width: 100%; max-height: 200px;
+      overflow-y: auto;
+      display: flex; flex-direction: column; gap: 10px;
+      padding-right: 2px;
+      scroll-behavior: smooth;
+    }
+    .retell-transcript::-webkit-scrollbar { width: 3px; }
+    .retell-transcript::-webkit-scrollbar-track { background: transparent; }
+    .retell-transcript::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 3px; }
+
+    .rt-msg { display: flex; flex-direction: column; max-width: 88%; }
+    .rt-msg.agent { align-self: flex-start; }
+    .rt-msg.user  { align-self: flex-end; }
+
+    .rt-label {
+      font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 700;
+    }
+    .rt-msg.user .rt-label { text-align: right; }
+
+    .rt-bubble {
+      padding: 9px 13px; border-radius: 14px;
+      font-size: 12px; font-weight: 700; line-height: 1.55; word-break: break-word;
+    }
+    .rt-msg.agent .rt-bubble {
+      background: rgba(124,58,237,0.18);
+      border: 1px solid rgba(168,85,247,0.3);
+      color: var(--white);
+      border-bottom-left-radius: 4px;
+    }
+    .rt-msg.user .rt-bubble {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.85);
+      border-bottom-right-radius: 4px;
+    }
+
+    .rt-empty {
+      text-align: center; color: rgba(255,255,255,0.22);
+      font-size: 12px; padding: 24px 0;
+    }
+
+    .rt-calendly {
+      display: inline-flex; align-items: center; gap: 7px;
+      margin-top: 10px; padding: 10px 15px;
+      background: var(--grad); border-radius: 11px;
+      color: #fff; font-size: 12px; font-weight: 700;
+      text-decoration: none; transition: opacity 0.2s;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+    }
+    .rt-calendly:hover { opacity: 0.85; }
+    .rt-calendly svg { flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -1348,6 +1402,11 @@
           <span id="retellStatusText">Connecting...</span>
         </div>
       </div>
+
+      <div class="retell-transcript" id="retellTranscript">
+        <p class="rt-empty">Conversation will appear here once connected...</p>
+      </div>
+
       <div class="vp-visualizer" id="retellVisualizer">
         <div class="vp-bar idle"></div>
         <div class="vp-bar idle"></div>
@@ -1687,15 +1746,62 @@
       window.closeRetellPanel();
     });
 
+    function formatTranscriptText(text) {
+      var escaped = text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Detect Calendly links and render as a booking button
+      escaped = escaped.replace(
+        /(https?:\/\/calendly\.com\/[^\s&]+)/gi,
+        '<br><a href="$1" target="_blank" rel="noopener" class="rt-calendly">' +
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+        'Book a Meeting</a>'
+      );
+
+      return escaped;
+    }
+
+    function renderRetellTranscript(transcript) {
+      var container = document.getElementById('retellTranscript');
+      if (!transcript || transcript.length === 0) {
+        container.innerHTML = '<p class="rt-empty">Conversation will appear here once connected...</p>';
+        return;
+      }
+
+      var html = '';
+      transcript.forEach(function(item) {
+        var isAgent = item.role === 'agent';
+        var cls     = isAgent ? 'agent' : 'user';
+        var label   = isAgent ? 'Grace' : 'You';
+        var content = formatTranscriptText(item.content || '');
+        html += '<div class="rt-msg ' + cls + '">' +
+                  '<span class="rt-label">' + label + '</span>' +
+                  '<div class="rt-bubble">' + content + '</div>' +
+                '</div>';
+      });
+
+      container.innerHTML = html;
+      container.scrollTop = container.scrollHeight;
+    }
+
     function bindRetellEvents() {
       retellClient.on('call_started', function() {
         retellCallActive = true;
         setRetellStatus('active', 'Connected — Grace is listening');
+        renderRetellTranscript([]);
       });
 
       retellClient.on('call_ended', function() {
         retellCallActive = false;
         window.closeRetellPanel();
+      });
+
+      retellClient.on('update', function(update) {
+        if (update && update.transcript && update.transcript.length) {
+          renderRetellTranscript(update.transcript);
+        }
       });
 
       retellClient.on('agent_start_talking', function() {
