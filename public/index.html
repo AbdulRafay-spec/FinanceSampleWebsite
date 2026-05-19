@@ -1396,7 +1396,7 @@
 
   <!-- ══ RETELL VOICE WIDGET ══ -->
   <div class="voice-widget retell-widget" id="retellWidget">
-    <div class="voice-tooltip">Talk to Grace, AI SDR ✦</div>
+    <div class="voice-tooltip">Talk to IQ, AI SDR ✦</div>
 
     <div class="voice-panel" id="retellPanel">
       <div class="vp-avatar-wrap">
@@ -1405,7 +1405,7 @@
         <div class="vp-avatar">G</div>
       </div>
       <div class="vp-info">
-        <div class="vp-name">Grace — FinEX AI SDR</div>
+        <div class="vp-name">IQ — FinEX AI SDR</div>
         <div class="vp-status">
           <span class="vp-dot connecting" id="retellDot"></span>
           <span id="retellStatusText">Connecting...</span>
@@ -1431,7 +1431,7 @@
       <p class="vp-hint">Your voice is processed securely in real time</p>
     </div>
 
-    <button class="voice-trigger retell-trigger" id="retellTrigger" title="Talk to Grace">
+    <button class="voice-trigger retell-trigger" id="retellTrigger" title="Talk to IQ">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
         <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
@@ -1600,7 +1600,7 @@
       transcript.forEach(function(item) {
         var isAgent = item.role === 'agent';
         var cls     = isAgent ? 'agent' : 'user';
-        var label   = isAgent ? 'Grace' : 'You';
+        var label   = isAgent ? 'IQ' : 'You';
         var content = formatTranscriptText(item.content || '');
         html += '<div class="rt-msg ' + cls + '">' +
                   '<span class="rt-label">' + label + '</span>' +
@@ -1619,7 +1619,7 @@
     function bindRetellEvents() {
       retellClient.on('call_started', function() {
         retellCallActive = true;
-        setRetellStatus('active', 'Connected — Grace is listening');
+        setRetellStatus('active', 'Connected — IQ is listening');
         renderRetellTranscript([]);
       });
 
@@ -1635,7 +1635,7 @@
       });
 
       retellClient.on('agent_start_talking', function() {
-        setRetellStatus('speaking', 'Grace is speaking...');
+        setRetellStatus('speaking', 'IQ is speaking...');
         retellRing.classList.add('speaking');
         retellRing2.classList.add('speaking');
         retellBars.forEach(function(b) { b.classList.remove('idle'); });
