@@ -79,6 +79,52 @@ app.post('/api/retell-call', (req, res) => {
   apiReq.end();
 });
 
+// Triggers a Retell outbound phone call and passes caller context as dynamic variables
+app.post('/api/outbound-call', async (req, res) => {
+  const { name, company, email, phone, message } = req.body || {};
+
+  if (!name || !company || !email || !phone || !message) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  const apiKey     = process.env.RETELL_API_KEY;
+  const agentId    = process.env.RETELL_OUTBOUND_AGENT_ID;
+  const fromNumber = process.env.RETELL_FROM_NUMBER;
+
+  if (!apiKey || !agentId || !fromNumber) {
+    console.error('[FinEX] Missing RETELL_API_KEY, RETELL_AGENT_ID, or RETELL_FROM_NUMBER in .env');
+    return res.status(500).json({ error: 'Outbound calling not configured' });
+  }
+
+  try {
+    const r = await fetch('https://api.retellai.com/v2/create-phone-call', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + apiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from_number: fromNumber,
+        to_number: phone,
+        agent_id: agentId,
+        retell_llm_dynamic_variables: {
+          name:    name,
+          company: company,
+          email:   email,
+          phone:   phone,
+          message: message
+        }
+      })
+    });
+
+    const data = await r.json();
+    if (!r.ok) return res.status(500).json({ error: data.error_message || 'Failed to initiate call' });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Export app for Vercel's serverless runtime
 module.exports = app;
 

@@ -1008,6 +1008,82 @@
     }
     .cf-input.invalid { border-color: rgba(239,68,68,0.6); }
     .cf-input.invalid + .cf-error { display: block; }
+    .cf-phone-row { display: flex; gap: 10px; }
+    .cf-phone-number { flex: 1; min-width: 0; }
+    .cf-dial-picker { position: relative; flex-shrink: 0; }
+    .cf-dial-btn {
+      display: flex; align-items: center; gap: 7px;
+      width: 118px; height: 100%; box-sizing: border-box;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 0 12px;
+      color: var(--white);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      white-space: nowrap;
+    }
+    .cf-dial-btn:hover, .cf-dial-btn.open {
+      border-color: rgba(168,85,247,0.6);
+      background: rgba(255,255,255,0.07);
+    }
+    .cf-dial-flag { font-size: 22px; line-height: 1; }
+    .cf-dial-chevron {
+      margin-left: auto; width: 11px; height: 7px; flex-shrink: 0;
+      transition: transform 0.18s;
+    }
+    .cf-dial-btn.open .cf-dial-chevron { transform: rotate(180deg); }
+    .cf-dial-dropdown {
+      position: absolute; top: calc(100% + 6px); left: 0;
+      width: 290px;
+      background: #0f0f1f;
+      border: 1px solid rgba(168,85,247,0.35);
+      border-radius: 14px;
+      box-shadow: 0 20px 56px rgba(0,0,0,0.75);
+      z-index: 9999; overflow: hidden;
+    }
+    .cf-dial-dropdown[hidden] { display: none; }
+    .cf-dial-search {
+      width: 100%; box-sizing: border-box;
+      background: rgba(255,255,255,0.04);
+      border: none; border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 11px 14px;
+      color: var(--white);
+      font-family: 'Poppins', sans-serif; font-size: 13px;
+      outline: none;
+    }
+    .cf-dial-search::placeholder { color: rgba(255,255,255,0.28); }
+    .cf-dial-list {
+      list-style: none; margin: 0; padding: 4px 0;
+      max-height: 230px; overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(168,85,247,0.4) transparent;
+    }
+    .cf-dial-list::-webkit-scrollbar { width: 4px; }
+    .cf-dial-list::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 2px; }
+    .cf-dial-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 14px; cursor: pointer;
+      color: rgba(255,255,255,0.82); font-size: 13px;
+      transition: background 0.1s;
+    }
+    .cf-dial-item:hover, .cf-dial-item.cf-dial-active {
+      background: rgba(124,58,237,0.28); color: #fff;
+    }
+    .cf-dial-item-flag { font-size: 22px; flex-shrink: 0; line-height: 1; }
+    .cf-dial-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cf-dial-item-code { color: rgba(255,255,255,0.42); font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .cf-form-error {
+      font-size: 12px; font-weight: 700;
+      color: #ef4444;
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: none;
+    }
 
     .cf-submit {
       width: 100%; padding: 16px;
@@ -1280,6 +1356,75 @@
     </div>
   </section>
 
+  <!-- ══ CONTACT ══ -->
+  <section class="contact-section" id="contact">
+    <div class="container">
+      <div class="contact-inner">
+
+        <div class="contact-header reveal">
+          <div class="contact-badge">✦ Get in Touch</div>
+          <h2>Get a <span class="grad-text">Callback</span> from Us</h2>
+          <p>Share your details and our team will reach out to discuss your funding needs and match you with the right investors.</p>
+        </div>
+
+        <div class="contact-form-wrap reveal">
+          <form id="contactForm" class="contact-form" novalidate>
+            <div class="cf-group">
+              <label class="cf-label" for="cfName">Full Name <span class="cf-req">*</span></label>
+              <input type="text" class="cf-input" id="cfName" placeholder="John Smith" autocomplete="name">
+              <span class="cf-error">Please enter your full name.</span>
+            </div>
+            <div class="cf-group">
+              <label class="cf-label" for="cfCompany">Company Name <span class="cf-req">*</span></label>
+              <input type="text" class="cf-input" id="cfCompany" placeholder="Acme Ltd" autocomplete="organization">
+              <span class="cf-error">Please enter your company name.</span>
+            </div>
+            <div class="cf-group">
+              <label class="cf-label" for="cfEmail">Email Address <span class="cf-req">*</span></label>
+              <input type="email" class="cf-input" id="cfEmail" placeholder="john@company.com" autocomplete="email">
+              <span class="cf-error">Please enter a valid email address.</span>
+            </div>
+            <div class="cf-group">
+              <label class="cf-label" for="cfPhone">Phone Number <span class="cf-req">*</span></label>
+              <div class="cf-phone-row">
+                <div class="cf-dial-picker" id="cfDialPicker">
+                  <button type="button" class="cf-dial-btn" id="cfDialBtn" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="cf-dial-flag" id="cfDialFlag">🇬🇧</span>
+                    <span id="cfDialCodeLabel">+44</span>
+                    <svg class="cf-dial-chevron" viewBox="0 0 11 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1 1l4.5 4.5L10 1" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </button>
+                  <div class="cf-dial-dropdown" id="cfDialDropdown" hidden>
+                    <input type="text" class="cf-dial-search" id="cfDialSearch" placeholder="Search country…" autocomplete="off">
+                    <ul class="cf-dial-list" id="cfDialList" role="listbox"></ul>
+                  </div>
+                </div>
+                <input type="hidden" id="cfCountry" value="+44">
+                <input type="tel" class="cf-input cf-phone-number" id="cfPhone" placeholder="Your phone number" autocomplete="tel-national">
+              </div>
+              <span class="cf-error" id="cfPhoneError">Please enter a valid phone number.</span>
+            </div>
+            <div class="cf-group">
+              <label class="cf-label" for="cfMessage">Message <span class="cf-req">*</span></label>
+              <textarea class="cf-input cf-textarea" id="cfMessage" placeholder="Tell us about your business and funding needs..." rows="4"></textarea>
+              <span class="cf-error">Please enter a message.</span>
+            </div>
+            <div class="cf-form-error" id="cfFormError"></div>
+            <button type="submit" class="cf-submit" id="cfSubmitBtn">Get a Call Back</button>
+          </form>
+
+          <div class="cf-success" id="cfSuccess">
+            <div class="cf-success-icon">✓</div>
+            <h3>Message Sent!</h3>
+            <p>Your message has been sent. IQ will call you shortly to discuss your funding needs.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ══ STATS ══ -->
   <section class="stats-band">
     <div class="container">
@@ -1489,48 +1634,6 @@
     </div>
   </section>
 
-  <!-- ══ CONTACT ══ -->
-  <section class="contact-section" id="contact">
-    <div class="container">
-      <div class="contact-inner">
-
-        <div class="contact-header reveal">
-          <div class="contact-badge">✦ Get in Touch</div>
-          <h2>Get a <span class="grad-text">Callback</span> from Us</h2>
-          <p>Share your details and our team will reach out to discuss your funding needs and match you with the right investors.</p>
-        </div>
-
-        <div class="contact-form-wrap reveal">
-          <form id="contactForm" class="contact-form" novalidate>
-            <div class="cf-group">
-              <label class="cf-label" for="cfName">Full Name <span class="cf-req">*</span></label>
-              <input type="text" class="cf-input" id="cfName" placeholder="John Smith" autocomplete="name">
-              <span class="cf-error">Please enter your full name.</span>
-            </div>
-            <div class="cf-group">
-              <label class="cf-label" for="cfEmail">Email Address <span class="cf-req">*</span></label>
-              <input type="email" class="cf-input" id="cfEmail" placeholder="john@company.com" autocomplete="email">
-              <span class="cf-error">Please enter a valid email address.</span>
-            </div>
-            <div class="cf-group">
-              <label class="cf-label" for="cfMessage">Message <span class="cf-req">*</span></label>
-              <textarea class="cf-input cf-textarea" id="cfMessage" placeholder="Tell us about your business and funding needs..." rows="4"></textarea>
-              <span class="cf-error">Please enter a message.</span>
-            </div>
-            <button type="submit" class="cf-submit">Request Callback</button>
-          </form>
-
-          <div class="cf-success" id="cfSuccess">
-            <div class="cf-success-icon">✓</div>
-            <h3>We'll call you back!</h3>
-            <p>Thanks for reaching out. A member of our team will be in touch with you very shortly.</p>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
   <!-- ══ FOOTER ══ -->
   <footer>
     <div class="container">
@@ -1649,34 +1752,220 @@
   </script>
   <!-- ══ CONTACT FORM LOGIC ══ -->
   <script>
-    document.getElementById('contactForm').addEventListener('submit', function(e) {
+  (function () {
+    var DIAL_CODES = [
+      ['🇦🇫','+93','Afghanistan'],['🇦🇱','+355','Albania'],['🇩🇿','+213','Algeria'],
+      ['🇦🇩','+376','Andorra'],['🇦🇴','+244','Angola'],['🇦🇬','+1268','Antigua & Barbuda'],
+      ['🇦🇷','+54','Argentina'],['🇦🇲','+374','Armenia'],['🇦🇺','+61','Australia'],
+      ['🇦🇹','+43','Austria'],['🇦🇿','+994','Azerbaijan'],['🇧🇸','+1242','Bahamas'],
+      ['🇧🇭','+973','Bahrain'],['🇧🇩','+880','Bangladesh'],['🇧🇧','+1246','Barbados'],
+      ['🇧🇾','+375','Belarus'],['🇧🇪','+32','Belgium'],['🇧🇿','+501','Belize'],
+      ['🇧🇯','+229','Benin'],['🇧🇹','+975','Bhutan'],['🇧🇴','+591','Bolivia'],
+      ['🇧🇦','+387','Bosnia & Herzegovina'],['🇧🇼','+267','Botswana'],['🇧🇷','+55','Brazil'],
+      ['🇧🇳','+673','Brunei'],['🇧🇬','+359','Bulgaria'],['🇧🇫','+226','Burkina Faso'],
+      ['🇧🇮','+257','Burundi'],['🇨🇻','+238','Cape Verde'],['🇰🇭','+855','Cambodia'],
+      ['🇨🇲','+237','Cameroon'],['🇨🇦','+1','Canada'],['🇨🇫','+236','Central African Republic'],
+      ['🇹🇩','+235','Chad'],['🇨🇱','+56','Chile'],['🇨🇳','+86','China'],
+      ['🇨🇴','+57','Colombia'],['🇰🇲','+269','Comoros'],['🇨🇬','+242','Congo'],
+      ['🇨🇩','+243','DR Congo'],['🇨🇷','+506','Costa Rica'],['🇭🇷','+385','Croatia'],
+      ['🇨🇺','+53','Cuba'],['🇨🇾','+357','Cyprus'],['🇨🇿','+420','Czech Republic'],
+      ['🇩🇰','+45','Denmark'],['🇩🇯','+253','Djibouti'],['🇩🇲','+1767','Dominica'],
+      ['🇩🇴','+1809','Dominican Republic'],['🇪🇨','+593','Ecuador'],['🇪🇬','+20','Egypt'],
+      ['🇸🇻','+503','El Salvador'],['🇬🇶','+240','Equatorial Guinea'],['🇪🇷','+291','Eritrea'],
+      ['🇪🇪','+372','Estonia'],['🇸🇿','+268','Eswatini'],['🇪🇹','+251','Ethiopia'],
+      ['🇫🇯','+679','Fiji'],['🇫🇮','+358','Finland'],['🇫🇷','+33','France'],
+      ['🇬🇦','+241','Gabon'],['🇬🇲','+220','Gambia'],['🇬🇪','+995','Georgia'],
+      ['🇩🇪','+49','Germany'],['🇬🇭','+233','Ghana'],['🇬🇷','+30','Greece'],
+      ['🇬🇩','+1473','Grenada'],['🇬🇹','+502','Guatemala'],['🇬🇳','+224','Guinea'],
+      ['🇬🇼','+245','Guinea-Bissau'],['🇬🇾','+592','Guyana'],['🇭🇹','+509','Haiti'],
+      ['🇭🇳','+504','Honduras'],['🇭🇰','+852','Hong Kong'],['🇭🇺','+36','Hungary'],
+      ['🇮🇸','+354','Iceland'],['🇮🇳','+91','India'],['🇮🇩','+62','Indonesia'],
+      ['🇮🇷','+98','Iran'],['🇮🇶','+964','Iraq'],['🇮🇪','+353','Ireland'],
+      ['🇮🇱','+972','Israel'],['🇮🇹','+39','Italy'],['🇯🇲','+1876','Jamaica'],
+      ['🇯🇵','+81','Japan'],['🇯🇴','+962','Jordan'],['🇰🇿','+7','Kazakhstan'],
+      ['🇰🇪','+254','Kenya'],['🇰🇮','+686','Kiribati'],['🇽🇰','+383','Kosovo'],
+      ['🇰🇼','+965','Kuwait'],['🇰🇬','+996','Kyrgyzstan'],['🇱🇦','+856','Laos'],
+      ['🇱🇻','+371','Latvia'],['🇱🇧','+961','Lebanon'],['🇱🇸','+266','Lesotho'],
+      ['🇱🇷','+231','Liberia'],['🇱🇾','+218','Libya'],['🇱🇮','+423','Liechtenstein'],
+      ['🇱🇹','+370','Lithuania'],['🇱🇺','+352','Luxembourg'],['🇲🇴','+853','Macau'],
+      ['🇲🇬','+261','Madagascar'],['🇲🇼','+265','Malawi'],['🇲🇾','+60','Malaysia'],
+      ['🇲🇻','+960','Maldives'],['🇲🇱','+223','Mali'],['🇲🇹','+356','Malta'],
+      ['🇲🇭','+692','Marshall Islands'],['🇲🇷','+222','Mauritania'],['🇲🇺','+230','Mauritius'],
+      ['🇲🇽','+52','Mexico'],['🇫🇲','+691','Micronesia'],['🇲🇩','+373','Moldova'],
+      ['🇲🇨','+377','Monaco'],['🇲🇳','+976','Mongolia'],['🇲🇪','+382','Montenegro'],
+      ['🇲🇦','+212','Morocco'],['🇲🇿','+258','Mozambique'],['🇲🇲','+95','Myanmar'],
+      ['🇳🇦','+264','Namibia'],['🇳🇷','+674','Nauru'],['🇳🇵','+977','Nepal'],
+      ['🇳🇱','+31','Netherlands'],['🇳🇿','+64','New Zealand'],['🇳🇮','+505','Nicaragua'],
+      ['🇳🇪','+227','Niger'],['🇳🇬','+234','Nigeria'],['🇰🇵','+850','North Korea'],
+      ['🇲🇰','+389','North Macedonia'],['🇳🇴','+47','Norway'],['🇴🇲','+968','Oman'],
+      ['🇵🇰','+92','Pakistan'],['🇵🇼','+680','Palau'],['🇵🇸','+970','Palestine'],
+      ['🇵🇦','+507','Panama'],['🇵🇬','+675','Papua New Guinea'],['🇵🇾','+595','Paraguay'],
+      ['🇵🇪','+51','Peru'],['🇵🇭','+63','Philippines'],['🇵🇱','+48','Poland'],
+      ['🇵🇹','+351','Portugal'],['🇶🇦','+974','Qatar'],['🇷🇴','+40','Romania'],
+      ['🇷🇺','+7','Russia'],['🇷🇼','+250','Rwanda'],['🇰🇳','+1869','Saint Kitts & Nevis'],
+      ['🇱🇨','+1758','Saint Lucia'],['🇻🇨','+1784','Saint Vincent'],['🇼🇸','+685','Samoa'],
+      ['🇸🇲','+378','San Marino'],['🇸🇹','+239','São Tomé & Príncipe'],['🇸🇦','+966','Saudi Arabia'],
+      ['🇸🇳','+221','Senegal'],['🇷🇸','+381','Serbia'],['🇸🇨','+248','Seychelles'],
+      ['🇸🇱','+232','Sierra Leone'],['🇸🇬','+65','Singapore'],['🇸🇰','+421','Slovakia'],
+      ['🇸🇮','+386','Slovenia'],['🇸🇧','+677','Solomon Islands'],['🇸🇴','+252','Somalia'],
+      ['🇿🇦','+27','South Africa'],['🇰🇷','+82','South Korea'],['🇸🇸','+211','South Sudan'],
+      ['🇪🇸','+34','Spain'],['🇱🇰','+94','Sri Lanka'],['🇸🇩','+249','Sudan'],
+      ['🇸🇷','+597','Suriname'],['🇸🇪','+46','Sweden'],['🇨🇭','+41','Switzerland'],
+      ['🇸🇾','+963','Syria'],['🇹🇼','+886','Taiwan'],['🇹🇯','+992','Tajikistan'],
+      ['🇹🇿','+255','Tanzania'],['🇹🇭','+66','Thailand'],['🇹🇱','+670','Timor-Leste'],
+      ['🇹🇬','+228','Togo'],['🇹🇴','+676','Tonga'],['🇹🇹','+1868','Trinidad & Tobago'],
+      ['🇹🇳','+216','Tunisia'],['🇹🇷','+90','Turkey'],['🇹🇲','+993','Turkmenistan'],
+      ['🇹🇻','+688','Tuvalu'],['🇺🇬','+256','Uganda'],['🇺🇦','+380','Ukraine'],
+      ['🇦🇪','+971','UAE'],['🇬🇧','+44','United Kingdom'],['🇺🇸','+1','United States'],
+      ['🇺🇾','+598','Uruguay'],['🇺🇿','+998','Uzbekistan'],['🇻🇺','+678','Vanuatu'],
+      ['🇻🇪','+58','Venezuela'],['🇻🇳','+84','Vietnam'],['🇾🇪','+967','Yemen'],
+      ['🇿🇲','+260','Zambia'],['🇿🇼','+263','Zimbabwe']
+    ];
+
+    // ── Custom dial-code picker ──────────────────────────────────────────────
+    var dialFlag    = document.getElementById('cfDialFlag');
+    var dialCodeLbl = document.getElementById('cfDialCodeLabel');
+    var dialBtn     = document.getElementById('cfDialBtn');
+    var dialDrop    = document.getElementById('cfDialDropdown');
+    var dialSearch  = document.getElementById('cfDialSearch');
+    var dialList    = document.getElementById('cfDialList');
+    var cfCountry   = document.getElementById('cfCountry'); // hidden input
+
+    var activeDial  = { flag: '🇬🇧', code: '+44' };
+
+    function renderList(q) {
+      dialList.innerHTML = '';
+      var lower = (q || '').toLowerCase();
+      DIAL_CODES.forEach(function(c) {
+        if (lower && c[2].toLowerCase().indexOf(lower) === -1 && c[1].indexOf(lower) === -1) return;
+        var li = document.createElement('li');
+        li.className = 'cf-dial-item' + (c[1] === activeDial.code ? ' cf-dial-active' : '');
+        li.setAttribute('role', 'option');
+        li.innerHTML =
+          '<span class="cf-dial-item-flag">' + c[0] + '</span>' +
+          '<span class="cf-dial-item-name">' + c[2] + '</span>' +
+          '<span class="cf-dial-item-code">' + c[1] + '</span>';
+        li.addEventListener('mousedown', function(ev) {
+          ev.preventDefault();
+          activeDial = { flag: c[0], code: c[1] };
+          dialFlag.textContent    = c[0];
+          dialCodeLbl.textContent = c[1];
+          cfCountry.value         = c[1];
+          closePicker();
+        });
+        dialList.appendChild(li);
+      });
+    }
+
+    function openPicker() {
+      dialDrop.hidden = false;
+      dialBtn.classList.add('open');
+      dialBtn.setAttribute('aria-expanded', 'true');
+      dialSearch.value = '';
+      renderList('');
+      setTimeout(function() { dialSearch.focus(); }, 0);
+    }
+
+    function closePicker() {
+      dialDrop.hidden = true;
+      dialBtn.classList.remove('open');
+      dialBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    dialBtn.addEventListener('click', function() {
+      dialDrop.hidden ? openPicker() : closePicker();
+    });
+
+    dialSearch.addEventListener('input', function() { renderList(this.value); });
+
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('cfDialPicker').contains(e.target)) closePicker();
+    });
+
+    // ── Form submission ──────────────────────────────────────────────────────
+    var form    = document.getElementById('contactForm');
+    var btn     = document.getElementById('cfSubmitBtn');
+    var success = document.getElementById('cfSuccess');
+    var formErr = document.getElementById('cfFormError');
+    var phoneErr= document.getElementById('cfPhoneError');
+
+    function setPhoneErr(show) { phoneErr.style.display = show ? 'block' : ''; }
+
+    form.addEventListener('submit', async function(e) {
       e.preventDefault();
+
       var name    = document.getElementById('cfName');
+      var company = document.getElementById('cfCompany');
       var email   = document.getElementById('cfEmail');
+      var phone   = document.getElementById('cfPhone');
       var message = document.getElementById('cfMessage');
       var valid   = true;
 
-      [name, email, message].forEach(function(el) { el.classList.remove('invalid'); });
+      [name, company, email, phone, message].forEach(function(el) { el.classList.remove('invalid'); });
+      formErr.style.display = 'none';
+      setPhoneErr(false);
 
-      if (!name.value.trim()) { name.classList.add('invalid'); valid = false; }
+      if (!name.value.trim())    { name.classList.add('invalid');    valid = false; }
+      if (!company.value.trim()) { company.classList.add('invalid'); valid = false; }
       if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
         email.classList.add('invalid'); valid = false;
+      }
+      if (!phone.value.trim() || !/^[\d\s\-().]+$/.test(phone.value.trim())) {
+        phone.classList.add('invalid'); setPhoneErr(true); valid = false;
       }
       if (!message.value.trim()) { message.classList.add('invalid'); valid = false; }
 
       if (!valid) return;
 
-      document.getElementById('contactForm').style.display = 'none';
-      var success = document.getElementById('cfSuccess');
-      success.style.display = 'flex';
+      var fullPhone = cfCountry.value + phone.value.trim().replace(/[\s\-().]/g, '');
+
+      btn.disabled = true;
+      btn.textContent = 'Calling you…';
+
+      try {
+        var r = await fetch('/api/outbound-call', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name:    name.value.trim(),
+            company: company.value.trim(),
+            email:   email.value.trim(),
+            phone:   fullPhone,
+            message: message.value.trim()
+          })
+        });
+
+        var data = await r.json();
+
+        if (!r.ok) {
+          btn.disabled = false;
+          btn.textContent = 'Get a Call Back';
+          formErr.textContent = data.error || 'Something went wrong. Please try again.';
+          formErr.style.display = 'block';
+          return;
+        }
+
+        form.style.display = 'none';
+        success.style.display = 'flex';
+
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Get a Call Back';
+        formErr.textContent = 'Connection error. Please try again.';
+        formErr.style.display = 'block';
+      }
     });
 
     // Clear invalid state on input
-    ['cfName','cfEmail','cfMessage'].forEach(function(id) {
-      document.getElementById(id).addEventListener('input', function() {
+    ['cfName','cfCompany','cfEmail','cfPhone','cfMessage'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('input', function() {
         this.classList.remove('invalid');
+        if (id === 'cfPhone') setPhoneErr(false);
+        formErr.style.display = 'none';
       });
     });
+  })();
   </script>
 
   <!-- ══ RETELL SDK + WIDGET LOGIC ══ -->
