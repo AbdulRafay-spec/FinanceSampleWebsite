@@ -71,7 +71,11 @@ module.exports = async (req, res) => {
 
     if (!r.ok) {
       console.error('[FinEX] Retell outbound error:', retellBody);
-      return res.status(500).json({ error: retellBody.error_message || 'Failed to initiate call' });
+      return res.status(500).json({
+        error: retellBody.error_message || 'Failed to initiate call',
+        retell_status: r.status,
+        retell_detail: retellBody
+      });
     }
 
     console.log('[FinEX] outbound-call success, call_id:', retellBody.call_id);
