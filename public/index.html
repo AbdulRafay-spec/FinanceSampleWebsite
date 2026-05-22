@@ -1401,7 +1401,7 @@
                   </div>
                 </div>
                 <input type="hidden" id="cfCountry" value="+971">
-                <input type="tel" class="cf-input cf-phone-number" id="cfPhone" placeholder="Your phone number" autocomplete="tel-national">
+                <input type="tel" class="cf-input cf-phone-number" id="cfPhone" placeholder="e.g. 56 845 9738" autocomplete="tel-national">
               </div>
               <span class="cf-error" id="cfPhoneError">Please enter a valid phone number.</span>
             </div>
@@ -1751,6 +1751,7 @@
     });
   </script>
   <!-- ══ CONTACT FORM LOGIC ══ -->
+  <script src="https://cdn.jsdelivr.net/npm/libphonenumber-js@1/bundle/libphonenumber-min.js"></script>
   <script>
   (function () {
     var DIAL_CODES = [
@@ -1830,6 +1831,36 @@
     var dialSearch  = document.getElementById('cfDialSearch');
     var dialList    = document.getElementById('cfDialList');
     var cfCountry   = document.getElementById('cfCountry'); // hidden input
+    var phoneInput  = document.getElementById('cfPhone');
+    var phoneE164   = null; // set by formatPhone; used by form submit
+
+    // ── Phone auto-formatter (libphonenumber-js) ─────────────────────────────
+    function formatPhone() {
+      var dialDigits = cfCountry.value.replace(/\D/g, ''); // e.g. "971"
+      var raw = phoneInput.value.replace(/\D/g, '');       // digits only
+      if (!raw) { phoneE164 = null; return; }
+      // Strip country code if user typed it (e.g. typed "+971568459738")
+      if (raw.startsWith(dialDigits)) raw = raw.slice(dialDigits.length);
+      if (!raw) { phoneInput.value = ''; phoneE164 = null; return; }
+      try {
+        var fmt = new libphonenumber.AsYouType();
+        fmt.input('+' + dialDigits + raw);
+        var pn = fmt.getNumber();
+        if (pn) {
+          phoneInput.value = pn.formatNational(); // e.g. "056 845 9738" / "(567) 456-4455"
+          phoneE164 = pn.format('E.164');         // e.g. "+971568459738"
+        } else {
+          // Incomplete number — group digits into readable chunks
+          phoneInput.value = raw.replace(/(\d{3})(?=\d)/g, '$1 ');
+          phoneE164 = null;
+        }
+      } catch (e) {
+        phoneInput.value = raw;
+        phoneE164 = null;
+      }
+    }
+
+    phoneInput.addEventListener('input', formatPhone);
 
     var activeDial  = { flag: '🇦🇪', code: '+971' };
 
@@ -1852,6 +1883,7 @@
           dialCodeLbl.textContent = c[1];
           cfCountry.value         = c[1];
           closePicker();
+          if (phoneInput.value.trim()) formatPhone();
         });
         dialList.appendChild(li);
       });
@@ -1910,14 +1942,17 @@
       if (!email.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
         email.classList.add('invalid'); valid = false;
       }
-      if (!phone.value.trim() || !/^[\d\s\-().]+$/.test(phone.value.trim())) {
+      if (!phone.value.trim() || phone.value.replace(/\D/g,'').length < 5) {
         phone.classList.add('invalid'); setPhoneErr(true); valid = false;
       }
       if (!message.value.trim()) { message.classList.add('invalid'); valid = false; }
 
       if (!valid) return;
 
-      var fullPhone = cfCountry.value + phone.value.trim().replace(/[\s\-().]/g, '');
+      // Use the E.164 from libphonenumber if available; fallback strips leading trunk zeros
+      var dialDigits = cfCountry.value.replace(/\D/g, '');
+      var localDigits = phone.value.replace(/\D/g, '').replace(/^0+/, '');
+      var fullPhone = phoneE164 || ('+' + dialDigits + localDigits);
 
       btn.disabled = true;
       btn.textContent = 'Calling you…';
