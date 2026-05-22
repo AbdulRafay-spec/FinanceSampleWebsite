@@ -1389,8 +1389,8 @@
               <div class="cf-phone-row">
                 <div class="cf-dial-picker" id="cfDialPicker">
                   <button type="button" class="cf-dial-btn" id="cfDialBtn" aria-haspopup="listbox" aria-expanded="false">
-                    <span class="cf-dial-flag" id="cfDialFlag">🇬🇧</span>
-                    <span id="cfDialCodeLabel">+44</span>
+                    <span class="cf-dial-flag" id="cfDialFlag">🇦🇪</span>
+                    <span id="cfDialCodeLabel">+971</span>
                     <svg class="cf-dial-chevron" viewBox="0 0 11 7" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path d="M1 1l4.5 4.5L10 1" stroke="rgba(255,255,255,0.45)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -1400,7 +1400,7 @@
                     <ul class="cf-dial-list" id="cfDialList" role="listbox"></ul>
                   </div>
                 </div>
-                <input type="hidden" id="cfCountry" value="+44">
+                <input type="hidden" id="cfCountry" value="+971">
                 <input type="tel" class="cf-input cf-phone-number" id="cfPhone" placeholder="Your phone number" autocomplete="tel-national">
               </div>
               <span class="cf-error" id="cfPhoneError">Please enter a valid phone number.</span>
@@ -1831,7 +1831,7 @@
     var dialList    = document.getElementById('cfDialList');
     var cfCountry   = document.getElementById('cfCountry'); // hidden input
 
-    var activeDial  = { flag: '🇬🇧', code: '+44' };
+    var activeDial  = { flag: '🇦🇪', code: '+971' };
 
     function renderList(q) {
       dialList.innerHTML = '';
