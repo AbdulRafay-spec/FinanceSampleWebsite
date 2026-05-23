@@ -4,7 +4,12 @@
       "WebFetch(domain:docs.retellai.com)",
       "WebFetch(domain:unpkg.com)",
       "WebFetch(domain:app.unpkg.com)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(git status *)",
+      "Bash(git commit -m ' *)",
+      "Bash(grep -n \"CONTACT FORM LOGIC\\\\|}\\)\\(\\);\\\\s*$\" \"c:\\\\Users\\\\1\\\\Desktop\\\\AR-X\\\\GrowthIQ\\\\FinanceSampleWebsite\\\\public\\\\index.html\")",
+      "WebSearch",
+      "WebFetch(domain:developers.telnyx.com)"
     ]
   }
 }
