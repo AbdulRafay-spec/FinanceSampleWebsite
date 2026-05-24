@@ -2,6 +2,24 @@
 
 const { isRateLimited, getIp, isAllowedOrigin } = require('./_security');
 
+async function callRetell(apiKey, agentId, fromNumber, phone, name, company, email, message) {
+  const r = await fetch('https://api.retellai.com/v2/create-phone-call', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + apiKey,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from_number: fromNumber,
+      to_number:   phone,
+      agent_id:    agentId,
+      retell_llm_dynamic_variables: { name, company, email, phone, message }
+    })
+  });
+  const body = await r.json().catch(() => ({}));
+  return { ok: r.ok, status: r.status, body };
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -36,24 +54,16 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const r = await fetch('https://api.retellai.com/v2/create-phone-call', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + apiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from_number: fromNumber,
-        to_number:   phone,
-        agent_id:    agentId,
-        retell_llm_dynamic_variables: { name, company, email, phone, message }
-      })
-    });
+    let result = await callRetell(apiKey, agentId, fromNumber, phone, name, company, email, message);
 
-    const retellBody = await r.json().catch(() => ({}));
+    // Retry once after 3s if Retell rejects — handles cold SIP re-registration after inactivity
+    if (!result.ok) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      result = await callRetell(apiKey, agentId, fromNumber, phone, name, company, email, message);
+    }
 
-    if (!r.ok) {
-      return res.status(500).json({ error: retellBody.error_message || 'Failed to initiate call' });
+    if (!result.ok) {
+      return res.status(500).json({ error: result.body.error_message || 'Failed to initiate call' });
     }
 
     res.json({ success: true });
