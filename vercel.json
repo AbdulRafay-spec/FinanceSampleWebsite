@@ -7,7 +7,8 @@
     { "src": "api/health.js",       "use": "@vercel/node" },
     { "src": "api/retell-call.js",    "use": "@vercel/node" },
     { "src": "api/outbound-call.js",  "use": "@vercel/node" },
-    { "src": "api/retell-inject.js", "use": "@vercel/node" }
+    { "src": "api/retell-inject.js", "use": "@vercel/node" },
+    { "src": "api/check-form.js",   "use": "@vercel/node" }
   ],
   "headers": [
     {
@@ -28,6 +29,7 @@
     { "src": "/api/retell-call",    "dest": "/api/retell-call.js" },
     { "src": "/api/outbound-call",  "dest": "/api/outbound-call.js" },
     { "src": "/api/retell-inject", "dest": "/api/retell-inject.js" },
+    { "src": "/api/check-form",   "dest": "/api/check-form.js" },
     { "src": "/js/(.*)",          "dest": "/public/js/$1" },
     { "src": "/(.*)",             "dest": "/public/index.html" }
   ]

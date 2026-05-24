@@ -82,6 +82,9 @@ app.post('/api/retell-call', (req, res) => {
 // Injects widget form data into an active Retell web call via override_dynamic_variables
 app.post('/api/retell-inject', require('./api/retell-inject'));
 
+// Retell Custom Function endpoint — called by the agent mid-call to check form submission status
+app.post('/api/check-form', require('./api/check-form'));
+
 // Triggers a Retell outbound phone call and passes caller context as dynamic variables
 app.post('/api/outbound-call', async (req, res) => {
   const { name, company, email, phone, message } = req.body || {};

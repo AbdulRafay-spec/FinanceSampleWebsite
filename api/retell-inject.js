@@ -33,6 +33,13 @@ module.exports = async (req, res) => {
           form_email:     email   || '',
           form_phone:     phone   || '',
           form_submitted: 'yes'
+        },
+        metadata: {
+          form_submitted: true,
+          form_name:      name    || '',
+          form_company:   company || '',
+          form_email:     email   || '',
+          form_phone:     phone   || ''
         }
       })
     });
