@@ -79,6 +79,9 @@ app.post('/api/retell-call', (req, res) => {
   apiReq.end();
 });
 
+// Injects widget form data into an active Retell web call via override_dynamic_variables
+app.post('/api/retell-inject', require('./api/retell-inject'));
+
 // Triggers a Retell outbound phone call and passes caller context as dynamic variables
 app.post('/api/outbound-call', async (req, res) => {
   const { name, company, email, phone, message } = req.body || {};

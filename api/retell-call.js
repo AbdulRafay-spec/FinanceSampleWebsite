@@ -43,7 +43,7 @@ module.exports = async (req, res) => {
     }
 
     const data = await r.json();
-    res.json({ access_token: data.access_token });
+    res.json({ access_token: data.access_token, call_id: data.call_id });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

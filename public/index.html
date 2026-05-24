@@ -784,6 +784,40 @@
     .voice-widget:hover .voice-tooltip { display: block; }
     .voice-widget.call-open .voice-tooltip { display: none !important; }
 
+    .iq-attention-bubble {
+      position: fixed;
+      bottom: 96px;
+      right: 28px;
+      background: #fff;
+      color: #1a0533;
+      padding: 10px 16px;
+      border-radius: 14px 14px 4px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+      z-index: 9998;
+      animation: bubbleIn 0.5s cubic-bezier(0.16,1,0.3,1);
+      cursor: pointer;
+    }
+    .iq-attention-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      right: 16px;
+      border: 8px solid transparent;
+      border-top-color: #fff;
+      border-bottom: 0;
+    }
+    .iq-attention-bubble .iq-bubble-icon {
+      display: inline-block;
+      margin-right: 6px;
+    }
+    @keyframes bubbleIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.92); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+
     .voice-panel {
       background: rgba(10,10,20,0.97);
       border: 1px solid rgba(168,85,247,0.35);
@@ -1267,9 +1301,26 @@
     }
     .rt-lead-btn:hover { opacity: 0.86; }
     .rt-lead-btn:disabled { opacity: 0.5; cursor: default; }
-    .rt-lead-success-msg {
-      text-align: center; font-size: 11px; font-weight: 700;
-      color: #a78bfa; padding: 4px 0;
+    @keyframes rt-tick-draw  { to { stroke-dashoffset: 0; } }
+    @keyframes rt-ok-fade    { 0%, 72% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.94); } }
+    .rt-success-anim {
+      display: flex; flex-direction: column; align-items: center; gap: 7px;
+      animation: rt-ok-fade 2.6s ease forwards;
+    }
+    .rt-tick-svg { width: 46px; height: 46px; overflow: visible; }
+    .rt-tick-svg .t-circle {
+      fill: none; stroke: #a78bfa; stroke-width: 2.4;
+      stroke-dasharray: 126; stroke-dashoffset: 126;
+      animation: rt-tick-draw 0.5s ease forwards;
+    }
+    .rt-tick-svg .t-check {
+      fill: none; stroke: #a78bfa; stroke-width: 2.4;
+      stroke-linecap: round; stroke-linejoin: round;
+      stroke-dasharray: 38; stroke-dashoffset: 38;
+      animation: rt-tick-draw 0.38s 0.44s ease forwards;
+    }
+    .rt-ok-label {
+      font-size: 11px; font-weight: 700; color: #a78bfa; text-align: center;
     }
   </style>
 </head>
@@ -1731,6 +1782,11 @@
   </footer>
 
   <!-- ══ RETELL VOICE WIDGET ══ -->
+  <!-- Attention bubble pointing to the voice widget -->
+  <div class="iq-attention-bubble" id="iqBubble">
+    <span class="iq-bubble-icon">🎙️</span>Chat with IQ — AI Voice Assistant
+  </div>
+
   <div class="voice-widget retell-widget" id="retellWidget">
     <div class="voice-tooltip">Talk to IQ, AI SDR ✦</div>
 
@@ -1756,8 +1812,9 @@
       <div class="rt-lead-form" id="rtLeadForm" style="display:none">
         <div class="rt-lead-title">✦ Share Your Details</div>
         <div class="rt-lead-sub">IQ will follow up with you after this call</div>
-        <input id="rtLName"  class="rt-lead-inp" type="text"  placeholder="Full Name *"      autocomplete="name">
-        <input id="rtLEmail" class="rt-lead-inp" type="email" placeholder="Email Address *"  autocomplete="email">
+        <input id="rtLName"    class="rt-lead-inp" type="text"  placeholder="Full Name *"      autocomplete="name">
+        <input id="rtLCompany" class="rt-lead-inp" type="text"  placeholder="Company Name *"   autocomplete="organization">
+        <input id="rtLEmail"   class="rt-lead-inp" type="email" placeholder="Email Address *"  autocomplete="email">
         <div class="rt-lead-phone-row">
           <select id="rtLCountry" class="rt-lead-sel">
             <option value="+971">🇦🇪 +971</option>
@@ -1775,7 +1832,15 @@
           <input id="rtLPhone" class="rt-lead-inp rt-lead-phone-inp" type="tel" placeholder="Phone number *">
         </div>
         <button id="rtLeadBtn" class="rt-lead-btn">Save My Details →</button>
-        <div id="rtLeadOk" class="rt-lead-success-msg" style="display:none">✓ Details saved! IQ will call you back shortly.</div>
+        <div id="rtLeadOk" style="display:none; text-align:center; padding: 8px 0 4px;">
+          <div class="rt-success-anim" id="rtSuccessAnim">
+            <svg class="rt-tick-svg" viewBox="0 0 44 44">
+              <circle class="t-circle" cx="22" cy="22" r="20"/>
+              <path class="t-check" d="M13 22 l7 7 l11-13"/>
+            </svg>
+            <div class="rt-ok-label">Your details have been received</div>
+          </div>
+        </div>
       </div>
 
       <div class="vp-visualizer" id="retellVisualizer">
@@ -1802,6 +1867,24 @@
   </div>
 
   <script>
+    // Attention bubble — dismiss on click or when widget opens
+    (function() {
+      var bubble = document.getElementById('iqBubble');
+      if (!bubble) return;
+      function dismissBubble() {
+        bubble.style.transition = 'opacity 0.3s';
+        bubble.style.opacity = '0';
+        setTimeout(function() { bubble.style.display = 'none'; }, 300);
+      }
+      bubble.addEventListener('click', function() {
+        dismissBubble();
+        document.getElementById('retellTrigger').click();
+      });
+      document.getElementById('retellTrigger').addEventListener('click', dismissBubble);
+      // Auto-dismiss after 8 seconds
+      setTimeout(dismissBubble, 8000);
+    })();
+
     // Scroll reveal
     const reveals = document.querySelectorAll('.reveal');
     const io = new IntersectionObserver((entries) => {
@@ -2134,6 +2217,7 @@
           })
       ]).then(function(results) {
         var data = results[1];
+        currentCallId = data.call_id || null;
         if (!retellClient) {
           retellClient = new window.RetellSDK.RetellWebClient();
           bindRetellEvents();
@@ -2171,6 +2255,7 @@
     var CALENDLY_URL = 'https://calendly.com/abdulrafayikram988/arx-test';
 
     // ── Lead form: shown when the caller shows genuine interest ─────────────
+    var currentCallId     = null;
     var leadFormShown     = false;
     var leadFormSubmitted = false;
 
@@ -2202,7 +2287,7 @@
       leadFormShown = false;
       leadFormSubmitted = false;
       // Reset fields
-      ['rtLName','rtLEmail','rtLPhone'].forEach(function(id) {
+      ['rtLName','rtLCompany','rtLEmail','rtLPhone'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) { el.value = ''; el.classList.remove('invalid'); }
       });
@@ -2214,43 +2299,67 @@
 
     // Attach submit handler once (button lives in persistent HTML, not re-rendered)
     document.getElementById('rtLeadBtn').addEventListener('click', function() {
-      var name    = (document.getElementById('rtLName').value  || '').trim();
-      var email   = (document.getElementById('rtLEmail').value || '').trim();
-      var country = document.getElementById('rtLCountry').value;
-      var phone   = (document.getElementById('rtLPhone').value || '').replace(/\D/g, '');
+      var name        = (document.getElementById('rtLName').value    || '').trim();
+      var company     = (document.getElementById('rtLCompany').value || '').trim();
+      var email       = (document.getElementById('rtLEmail').value   || '').trim();
+      var countryCode = document.getElementById('rtLCountry').value;
+      var rawDigits   = (document.getElementById('rtLPhone').value   || '').replace(/\D/g, '');
+      var fullPhone   = countryCode + rawDigits;
 
       var valid = true;
-      ['rtLName','rtLEmail','rtLPhone'].forEach(function(id) {
+      ['rtLName','rtLCompany','rtLEmail','rtLPhone'].forEach(function(id) {
         document.getElementById(id).classList.remove('invalid');
       });
-      if (!name)  { document.getElementById('rtLName').classList.add('invalid');  valid = false; }
+      if (!name)     { document.getElementById('rtLName').classList.add('invalid');    valid = false; }
+      if (!company)  { document.getElementById('rtLCompany').classList.add('invalid'); valid = false; }
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         document.getElementById('rtLEmail').classList.add('invalid'); valid = false;
       }
-      if (!phone) { document.getElementById('rtLPhone').classList.add('invalid'); valid = false; }
+      if (!rawDigits) { document.getElementById('rtLPhone').classList.add('invalid'); valid = false; }
       if (!valid) return;
 
       var btn = document.getElementById('rtLeadBtn');
       btn.disabled = true;
-      btn.textContent = 'Saving…';
+      btn.textContent = 'Sending…';
+      leadFormSubmitted = true;
 
-      fetch('/api/outbound-call', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name:    name,
-          company: 'Voice Widget Lead',
-          email:   email,
-          phone:   country + phone,
-          message: 'Lead captured via voice widget during call'
-        })
-      }).then(function() {
-        leadFormSubmitted = true;
-        btn.style.display = 'none';
-        document.getElementById('rtLeadOk').style.display = 'block';
-      }).catch(function() {
+      if (!currentCallId) {
+        console.error('[FinEX] No call_id — widget form data cannot be sent to Retell');
         btn.disabled = false;
         btn.textContent = 'Save My Details →';
+        leadFormSubmitted = false;
+        return;
+      }
+
+      // Wait for the inject to succeed before showing the tick
+      fetch('/api/retell-inject', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ call_id: currentCallId, name: name, company: company, email: email, phone: fullPhone })
+      })
+      .then(function(r) {
+        return r.json().then(function(body) {
+          if (!r.ok) throw new Error(body.error || 'inject failed (' + r.status + ')');
+          return body;
+        });
+      })
+      .then(function() {
+        // Inject confirmed — now show tick and schedule form removal
+        btn.style.display = 'none';
+        var okEl = document.getElementById('rtLeadOk');
+        var anim = document.getElementById('rtSuccessAnim');
+        if (anim) { anim.style.animation = 'none'; anim.offsetHeight; anim.style.animation = ''; }
+        okEl.style.display = 'block';
+        setTimeout(function() {
+          var form = document.getElementById('rtLeadForm');
+          if (form) form.style.display = 'none';
+        }, 2700);
+      })
+      .catch(function(err) {
+        console.error('[FinEX] Retell inject failed:', err.message || err);
+        btn.disabled = false;
+        btn.textContent = 'Try Again';
+        leadFormSubmitted = false;
       });
     });
 
@@ -2330,6 +2439,7 @@
 
       retellClient.on('call_ended', function() {
         retellCallActive = false;
+        currentCallId = null;
         hideLeadForm();
         window.closeRetellPanel();
       });
