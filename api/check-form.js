@@ -24,14 +24,15 @@ module.exports = async (req, res) => {
 
     if (meta.form_submitted) {
       return res.json({
-        result: 'Form submitted. Name: ' + meta.form_name +
-                '. Company: ' + meta.form_company +
-                '. Email: ' + meta.form_email +
-                '. Phone: ' + meta.form_phone + '.'
+        result:       'Form submitted',
+        form_name:    meta.form_name    || '',
+        form_company: meta.form_company || '',
+        form_email:   meta.form_email   || '',
+        form_phone:   meta.form_phone   || ''
       });
     }
 
-    return res.json({ result: 'Form not yet submitted.' });
+    return res.json({ result: 'Form not yet submitted' });
 
   } catch (e) {
     return res.json({ result: 'Error checking form status.' });
