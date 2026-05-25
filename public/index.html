@@ -2271,7 +2271,7 @@
 
     function leadInterested(transcript) {
       var userMsgs = transcript.filter(function(i) { return i.role === 'user'; });
-      if (userMsgs.length < 2) return false;
+      if (userMsgs.length < 1) return false;
       var allText = userMsgs.map(function(i) { return (i.content || '').toLowerCase(); }).join(' ');
       return LEAD_KEYWORDS.some(function(kw) { return allText.includes(kw); });
     }
