@@ -1993,29 +1993,49 @@
     var phoneE164   = null; // set by formatPhone; used by form submit
 
     // ── Phone auto-formatter (libphonenumber-js) ─────────────────────────────
+    // Strips leading trunk digit (e.g. the "0" in UAE "056..."), enforces the
+    // country's max digit count, and shows the local part in international
+    // spacing without the country code (which is already in the dropdown).
     function formatPhone() {
-      var dialDigits = cfCountry.value.replace(/\D/g, ''); // e.g. "971"
-      var raw = phoneInput.value.replace(/\D/g, '');       // digits only
-      if (!raw) { phoneE164 = null; return; }
-      // Strip country code if user typed it (e.g. typed "+971568459738")
-      if (raw.startsWith(dialDigits)) raw = raw.slice(dialDigits.length);
+      var dialDigits = cfCountry.value.replace(/\D/g, '');
+      var raw = phoneInput.value.replace(/\D/g, '');
       if (!raw) { phoneInput.value = ''; phoneE164 = null; return; }
+
+      // Strip typed country code (e.g. user pasted "+971568459738")
+      if (raw.startsWith(dialDigits)) raw = raw.slice(dialDigits.length);
+      // Strip leading trunk digit(s) — e.g. "0566…" → "566…"
+      raw = raw.replace(/^0+/, '');
+
+      if (!raw) { phoneInput.value = ''; phoneE164 = null; return; }
+
       try {
         var fmt = new libphonenumber.AsYouType();
         fmt.input('+' + dialDigits + raw);
         var pn = fmt.getNumber();
+
         if (pn) {
-          phoneInput.value = pn.formatNational(); // e.g. "056 845 9738" / "(567) 456-4455"
-          phoneE164 = pn.format('E.164');         // e.g. "+971568459738"
-        } else {
-          // Incomplete number — group digits into readable chunks
-          phoneInput.value = raw.replace(/(\d{3})(?=\d)/g, '$1 ');
-          phoneE164 = null;
+          // Enforce max: can't type more digits than the national number allows
+          if (raw.length > pn.nationalNumber.length) {
+            raw = raw.slice(0, pn.nationalNumber.length);
+            fmt = new libphonenumber.AsYouType();
+            fmt.input('+' + dialDigits + raw);
+            pn = fmt.getNumber();
+          }
+          if (pn) {
+            // International format "e.g. +971 56 845 9738" → strip prefix → "56 845 9738"
+            var intl   = pn.formatInternational();
+            var prefix = '+' + dialDigits;
+            phoneInput.value = intl.startsWith(prefix)
+              ? intl.slice(prefix.length).trimStart()
+              : intl;
+            phoneE164 = pn.isValid() ? pn.format('E.164') : null;
+            return;
+          }
         }
-      } catch (e) {
-        phoneInput.value = raw;
+        // Still typing — show digits with basic spacing
+        phoneInput.value = raw.replace(/(\d{3})(?=\d)/g, '$1 ');
         phoneE164 = null;
-      }
+      } catch (e) { phoneInput.value = raw; phoneE164 = null; }
     }
 
     phoneInput.addEventListener('input', formatPhone);
@@ -2482,6 +2502,54 @@
         retellCallActive = false;
       });
     }
+
+    // ── Widget mini-form phone formatter ────────────────────────────────────
+    // Same logic as the contact form: strip trunk digit, enforce max length,
+    // display local part in international spacing (country code in dropdown).
+    (function() {
+      var rtPhone   = document.getElementById('rtLPhone');
+      var rtCountry = document.getElementById('rtLCountry');
+
+      function fmtRtPhone() {
+        var dialDigits = (rtCountry.value || '').replace(/\D/g, '');
+        var raw = rtPhone.value.replace(/\D/g, '');
+        if (!raw) { rtPhone.value = ''; return; }
+
+        if (raw.startsWith(dialDigits)) raw = raw.slice(dialDigits.length);
+        raw = raw.replace(/^0+/, '');
+
+        if (!raw) { rtPhone.value = ''; return; }
+
+        try {
+          var fmt = new libphonenumber.AsYouType();
+          fmt.input('+' + dialDigits + raw);
+          var pn = fmt.getNumber();
+
+          if (pn) {
+            if (raw.length > pn.nationalNumber.length) {
+              raw = raw.slice(0, pn.nationalNumber.length);
+              fmt = new libphonenumber.AsYouType();
+              fmt.input('+' + dialDigits + raw);
+              pn = fmt.getNumber();
+            }
+            if (pn) {
+              var intl   = pn.formatInternational();
+              var prefix = '+' + dialDigits;
+              rtPhone.value = intl.startsWith(prefix)
+                ? intl.slice(prefix.length).trimStart()
+                : intl;
+              return;
+            }
+          }
+          rtPhone.value = raw.replace(/(\d{3})(?=\d)/g, '$1 ');
+        } catch(e) { rtPhone.value = raw; }
+      }
+
+      rtPhone.addEventListener('input', fmtRtPhone);
+      rtCountry.addEventListener('change', function() {
+        if (rtPhone.value.trim()) fmtRtPhone();
+      });
+    })();
   </script>
 </body>
 </html>
