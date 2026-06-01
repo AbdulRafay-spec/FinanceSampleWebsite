@@ -786,12 +786,12 @@
 
     .iq-attention-bubble {
       position: fixed;
-      bottom: 96px;
-      right: 28px;
+      bottom: 108px;
+      right: 32px;
       background: #fff;
       color: #1a0533;
       padding: 10px 16px;
-      border-radius: 14px 14px 4px 14px;
+      border-radius: 14px;
       font-size: 13px;
       font-weight: 700;
       white-space: nowrap;
@@ -803,9 +803,9 @@
     .iq-attention-bubble::after {
       content: '';
       position: absolute;
-      bottom: -8px;
-      right: 16px;
-      border: 8px solid transparent;
+      bottom: -10px;
+      right: 31px;
+      border: 10px solid transparent;
       border-top-color: #fff;
       border-bottom: 0;
     }
@@ -1812,7 +1812,10 @@
       <div class="rt-lead-form" id="rtLeadForm" style="display:none">
         <div class="rt-lead-title">✦ Share Your Details</div>
         <div class="rt-lead-sub">IQ will follow up with you after this call</div>
-        <input id="rtLName"    class="rt-lead-inp" type="text"  placeholder="Full Name *"      autocomplete="name">
+        <div style="display:flex;gap:6px;">
+          <input id="rtLFirstName" class="rt-lead-inp" type="text" placeholder="First Name *" autocomplete="given-name" style="flex:1;min-width:0;">
+          <input id="rtLLastName"  class="rt-lead-inp" type="text" placeholder="Last Name *"  autocomplete="family-name" style="flex:1;min-width:0;">
+        </div>
         <input id="rtLCompany" class="rt-lead-inp" type="text"  placeholder="Company Name *"   autocomplete="organization">
         <input id="rtLEmail"   class="rt-lead-inp" type="email" placeholder="Email Address *"  autocomplete="email">
         <div class="rt-lead-phone-row">
@@ -2258,6 +2261,7 @@
     var currentCallId     = null;
     var leadFormShown     = false;
     var leadFormSubmitted = false;
+    var pendingLeadForm   = false;
 
     var LEAD_KEYWORDS = [
       'service', 'what do you do', 'what do you offer', 'how does it work',
@@ -2287,7 +2291,7 @@
       leadFormShown = false;
       leadFormSubmitted = false;
       // Reset fields
-      ['rtLName','rtLCompany','rtLEmail','rtLPhone'].forEach(function(id) {
+      ['rtLFirstName','rtLLastName','rtLCompany','rtLEmail','rtLPhone'].forEach(function(id) {
         var el = document.getElementById(id);
         if (el) { el.value = ''; el.classList.remove('invalid'); }
       });
@@ -2295,23 +2299,26 @@
       var btn = document.getElementById('rtLeadBtn');
       if (ok) ok.style.display = 'none';
       if (btn) { btn.style.display = ''; btn.disabled = false; btn.textContent = 'Save My Details →'; }
+      pendingLeadForm   = false;
     }
 
     // Attach submit handler once (button lives in persistent HTML, not re-rendered)
     document.getElementById('rtLeadBtn').addEventListener('click', function() {
-      var name        = (document.getElementById('rtLName').value    || '').trim();
-      var company     = (document.getElementById('rtLCompany').value || '').trim();
-      var email       = (document.getElementById('rtLEmail').value   || '').trim();
+      var firstName   = (document.getElementById('rtLFirstName').value || '').trim();
+      var lastName    = (document.getElementById('rtLLastName').value  || '').trim();
+      var company     = (document.getElementById('rtLCompany').value   || '').trim();
+      var email       = (document.getElementById('rtLEmail').value     || '').trim();
       var countryCode = document.getElementById('rtLCountry').value;
-      var rawDigits   = (document.getElementById('rtLPhone').value   || '').replace(/\D/g, '');
+      var rawDigits   = (document.getElementById('rtLPhone').value     || '').replace(/\D/g, '');
       var fullPhone   = countryCode + rawDigits;
 
       var valid = true;
-      ['rtLName','rtLCompany','rtLEmail','rtLPhone'].forEach(function(id) {
+      ['rtLFirstName','rtLLastName','rtLCompany','rtLEmail','rtLPhone'].forEach(function(id) {
         document.getElementById(id).classList.remove('invalid');
       });
-      if (!name)     { document.getElementById('rtLName').classList.add('invalid');    valid = false; }
-      if (!company)  { document.getElementById('rtLCompany').classList.add('invalid'); valid = false; }
+      if (!firstName) { document.getElementById('rtLFirstName').classList.add('invalid'); valid = false; }
+      if (!lastName)  { document.getElementById('rtLLastName').classList.add('invalid');  valid = false; }
+      if (!company)   { document.getElementById('rtLCompany').classList.add('invalid');   valid = false; }
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         document.getElementById('rtLEmail').classList.add('invalid'); valid = false;
       }
@@ -2335,7 +2342,7 @@
       fetch('/api/retell-inject', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ call_id: currentCallId, name: name, company: company, email: email, phone: fullPhone })
+        body: JSON.stringify({ call_id: currentCallId, first_name: firstName, last_name: lastName, company: company, email: email, phone: fullPhone })
       })
       .then(function(r) {
         return r.json().then(function(body) {
@@ -2423,10 +2430,9 @@
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
 
-      // Show lead form when genuine interest detected (only once per call)
-      if (!leadFormShown && leadInterested(transcript)) {
-        leadFormShown = true;
-        showLeadForm();
+      // Flag interest — form shows after agent finishes answering (agent_stop_talking)
+      if (!leadFormShown && !pendingLeadForm && leadInterested(transcript)) {
+        pendingLeadForm = true;
       }
     }
 
@@ -2455,6 +2461,12 @@
         retellRing.classList.add('speaking');
         retellRing2.classList.add('speaking');
         retellBars.forEach(function(b) { b.classList.remove('idle'); });
+        // Show lead form as agent begins answering the keyword message
+        if (pendingLeadForm && !leadFormShown) {
+          pendingLeadForm = false;
+          leadFormShown   = true;
+          showLeadForm();
+        }
       });
 
       retellClient.on('agent_stop_talking', function() {

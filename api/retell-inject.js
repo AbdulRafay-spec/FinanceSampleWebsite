@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
     return res.status(429).json({ error: 'Too many requests' });
   }
 
-  const { call_id, name, company, email, phone } = req.body || {};
+  const { call_id, first_name, last_name, company, email, phone } = req.body || {};
   if (!call_id) return res.status(400).json({ error: 'call_id is required' });
 
   const apiKey = process.env.RETELL_API_KEY;
@@ -28,11 +28,12 @@ module.exports = async (req, res) => {
       },
       body: JSON.stringify({
         override_dynamic_variables: {
-          form_name:      name    || '',
-          form_company:   company || '',
-          form_email:     email   || '',
-          form_phone:     phone   || '',
-          form_submitted: 'yes'
+          form_first_name:        first_name || '',
+          form_last_name:         last_name  || '',
+          form_company:           company    || '',
+          form_email:             email      || '',
+          form_phone:             phone      || '',
+          form_inbound_submitted: 'true'
         }
       })
     });
