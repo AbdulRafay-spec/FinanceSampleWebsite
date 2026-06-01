@@ -2277,28 +2277,15 @@
 
     var CALENDLY_URL = 'https://calendly.com/abdulrafayikram988/arx-test';
 
-    // ── Lead form: shown when the caller shows genuine interest ─────────────
+    // ── Lead form: shown when the AGENT says the trigger phrase ─────────────
+    // The agent prompt instructs the agent to say "A form has appeared in the
+    // chat widget on your screen." — we watch for that phrase and show the
+    // form at exactly that moment, not before.
     var currentCallId     = null;
     var leadFormShown     = false;
     var leadFormSubmitted = false;
-    var pendingLeadForm   = false;
 
-    var LEAD_KEYWORDS = [
-      'service', 'what do you do', 'what do you offer', 'how does it work',
-      'tell me more', 'how much', 'pricing', 'cost', 'interested',
-      'sounds good', 'sounds great', 'apply', 'get started', 'eligibility',
-      'requirement', 'funding', 'investment', 'investor', 'capital',
-      'sme', 'startup', 'business', 'company', 'loan', 'finance',
-      'how can you help', 'what are your', 'more information', 'learn more',
-      'qualify', 'criteria', 'nature of', 'tell me about'
-    ];
-
-    function leadInterested(transcript) {
-      var userMsgs = transcript.filter(function(i) { return i.role === 'user'; });
-      if (userMsgs.length < 1) return false;
-      var allText = userMsgs.map(function(i) { return (i.content || '').toLowerCase(); }).join(' ');
-      return LEAD_KEYWORDS.some(function(kw) { return allText.includes(kw); });
-    }
+    var FORM_TRIGGER_PHRASE = 'a form has appeared';
 
     function showLeadForm() {
       var form = document.getElementById('rtLeadForm');
@@ -2319,7 +2306,6 @@
       var btn = document.getElementById('rtLeadBtn');
       if (ok) ok.style.display = 'none';
       if (btn) { btn.style.display = ''; btn.disabled = false; btn.textContent = 'Save My Details →'; }
-      pendingLeadForm   = false;
     }
 
     // Attach submit handler once (button lives in persistent HTML, not re-rendered)
@@ -2450,9 +2436,16 @@
       container.innerHTML = html;
       container.scrollTop = container.scrollHeight;
 
-      // Flag interest — form shows after agent finishes answering (agent_stop_talking)
-      if (!leadFormShown && !pendingLeadForm && leadInterested(transcript)) {
-        pendingLeadForm = true;
+      // Show form the moment the agent says the trigger phrase
+      if (!leadFormShown) {
+        var agentSaidForm = transcript.some(function(item) {
+          return item.role === 'agent' &&
+                 (item.content || '').toLowerCase().includes(FORM_TRIGGER_PHRASE);
+        });
+        if (agentSaidForm) {
+          leadFormShown = true;
+          showLeadForm();
+        }
       }
     }
 
@@ -2481,12 +2474,6 @@
         retellRing.classList.add('speaking');
         retellRing2.classList.add('speaking');
         retellBars.forEach(function(b) { b.classList.remove('idle'); });
-        // Show lead form as agent begins answering the keyword message
-        if (pendingLeadForm && !leadFormShown) {
-          pendingLeadForm = false;
-          leadFormShown   = true;
-          showLeadForm();
-        }
       });
 
       retellClient.on('agent_stop_talking', function() {
