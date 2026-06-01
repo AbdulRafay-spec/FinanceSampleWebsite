@@ -46,7 +46,17 @@ app.post('/api/retell-call', (req, res) => {
     return res.status(500).json({ error: 'Retell not configured on server' });
   }
 
-  const payload = JSON.stringify({ agent_id: agentId });
+  const payload = JSON.stringify({
+    agent_id: agentId,
+    retell_llm_dynamic_variables: {
+      form_first_name:        '',
+      form_last_name:         '',
+      form_company:           '',
+      form_email:             '',
+      form_phone:             '',
+      form_inbound_submitted: 'false'
+    }
+  });
   const options = {
     hostname: 'api.retellai.com',
     path:     '/v2/create-web-call',

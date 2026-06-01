@@ -34,7 +34,17 @@ module.exports = async (req, res) => {
         'Authorization': 'Bearer ' + apiKey,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ agent_id: agentId })
+      body: JSON.stringify({
+        agent_id: agentId,
+        retell_llm_dynamic_variables: {
+          form_first_name:        '',
+          form_last_name:         '',
+          form_company:           '',
+          form_email:             '',
+          form_phone:             '',
+          form_inbound_submitted: 'false'
+        }
+      })
     });
 
     if (!r.ok) {
