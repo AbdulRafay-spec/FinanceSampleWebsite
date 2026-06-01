@@ -67,7 +67,7 @@ app.post('/api/retell-call', (req, res) => {
         if (apiRes.statusCode >= 400) {
           return res.status(500).json({ error: parsed.error_message || 'Retell API error' });
         }
-        res.json({ access_token: parsed.access_token });
+        res.json({ access_token: parsed.access_token, call_id: parsed.call_id });
       } catch {
         res.status(500).json({ error: 'Invalid response from Retell API' });
       }
