@@ -81,6 +81,7 @@ module.exports = async (req, res) => {
           form_email:      email,
           form_phone:      phone,
           form_company:    company,
+          message:         message,
           call_id:         result.body.call_id || null
         });
       if (dbError) console.error('[FinEX] Supabase insert error (contact form):', dbError.message);
