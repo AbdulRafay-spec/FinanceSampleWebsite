@@ -1,6 +1,7 @@
 'use strict';
 
 const { isRateLimited, getIp, isAllowedOrigin } = require('./_security');
+const { getSupabase } = require('./_supabase');
 
 async function callRetell(apiKey, agentId, fromNumber, phone, name, company, email, message) {
   const r = await fetch('https://api.retellai.com/v2/create-phone-call', {
@@ -63,10 +64,31 @@ module.exports = async (req, res) => {
     }
 
     if (!result.ok) {
-      return res.status(500).json({ error: result.body.error_message || 'Failed to initiate call' });
+      console.error('[FinEX] Retell outbound call failed:', JSON.stringify(result.body));
+      return res.status(500).json({ error: result.body.error_message || 'Failed to initiate call', retell: result.body });
     }
 
-    res.json({ success: true });
+    console.log('[FinEX] Retell outbound call created:', JSON.stringify(result.body));
+
+    // Save to Supabase — fire and forget (don't block the response)
+    try {
+      const supabase = getSupabase();
+      const { error: dbError } = await supabase
+        .from('retell_form_submission')
+        .insert({
+          name:    name,
+          company: company,
+          email:   email,
+          phone:   phone,
+          message: message,
+          call_id: result.body.call_id || null
+        });
+      if (dbError) console.error('[FinEX] Supabase insert error (contact form):', dbError.message);
+    } catch (dbErr) {
+      console.error('[FinEX] Supabase unavailable (contact form):', dbErr.message);
+    }
+
+    res.json({ success: true, call_id: result.body.call_id, call_status: result.body.call_status });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
