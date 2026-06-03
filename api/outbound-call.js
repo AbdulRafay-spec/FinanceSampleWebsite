@@ -3,7 +3,7 @@
 const { isRateLimited, getIp, isAllowedOrigin } = require('./_security');
 const { getSupabase } = require('./_supabase');
 
-async function callRetell(apiKey, agentId, fromNumber, phone, name, company, email, message) {
+async function callRetell(apiKey, agentId, fromNumber, phone, first_name, last_name, company, email, message) {
   const r = await fetch('https://api.retellai.com/v2/create-phone-call', {
     method: 'POST',
     headers: {
@@ -14,7 +14,7 @@ async function callRetell(apiKey, agentId, fromNumber, phone, name, company, ema
       from_number: fromNumber,
       to_number:   phone,
       agent_id:    agentId,
-      retell_llm_dynamic_variables: { name, company, email, phone, message }
+      retell_llm_dynamic_variables: { first_name, last_name, company, email, phone, message }
     })
   });
   const body = await r.json().catch(() => ({}));
@@ -32,9 +32,9 @@ module.exports = async (req, res) => {
     return res.status(429).json({ error: 'Too many requests — please wait a moment' });
   }
 
-  const { name, company, email, phone, message } = req.body || {};
+  const { first_name, last_name, company, email, phone, message } = req.body || {};
 
-  if (!name || !company || !email || !phone || !message) {
+  if (!first_name || !last_name || !company || !email || !phone || !message) {
     return res.status(400).json({ error: 'All fields are required' });
   }
 
@@ -55,12 +55,12 @@ module.exports = async (req, res) => {
   }
 
   try {
-    let result = await callRetell(apiKey, agentId, fromNumber, phone, name, company, email, message);
+    let result = await callRetell(apiKey, agentId, fromNumber, phone, first_name, last_name, company, email, message);
 
     // Retry once after 3s if Retell rejects — handles cold SIP re-registration after inactivity
     if (!result.ok) {
       await new Promise(resolve => setTimeout(resolve, 3000));
-      result = await callRetell(apiKey, agentId, fromNumber, phone, name, company, email, message);
+      result = await callRetell(apiKey, agentId, fromNumber, phone, first_name, last_name, company, email, message);
     }
 
     if (!result.ok) {
@@ -76,8 +76,8 @@ module.exports = async (req, res) => {
       const { error: dbError } = await supabase
         .from('retell_form_submissions')
         .insert({
-          form_first_name: name,
-          form_last_name:  '',
+          form_first_name: first_name,
+          form_last_name:  last_name,
           form_email:      email,
           form_phone:      phone,
           form_company:    company,
