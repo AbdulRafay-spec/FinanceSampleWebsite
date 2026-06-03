@@ -14,7 +14,7 @@ module.exports = async (req, res) => {
     return res.status(429).json({ error: 'Too many requests' });
   }
 
-  const { call_id, first_name, last_name, company, email, phone } = req.body || {};
+  const { call_id, first_name, last_name, company, email, phone, country_code } = req.body || {};
   if (!call_id) return res.status(400).json({ error: 'call_id is required' });
 
   const apiKey = process.env.RETELL_API_KEY;
@@ -49,12 +49,14 @@ module.exports = async (req, res) => {
       const { error: dbError } = await supabase
         .from('voice_widget_retell_form_submission')
         .insert({
-          first_name: first_name || '',
-          last_name:  last_name  || '',
-          company:    company    || '',
-          email:      email      || '',
-          phone:      phone      || '',
-          call_id:    call_id
+          call_id:         call_id,
+          first_name:      first_name    || '',
+          last_name:       last_name     || '',
+          company_name:    company       || '',
+          email:           email         || '',
+          phone_number:    phone         || '',
+          country_code:    country_code  || '',
+          retell_agent_id: process.env.RETELL_AGENT_ID || ''
         });
       if (dbError) console.error('[FinEX] Supabase insert error (widget form):', dbError.message);
     } catch (dbErr) {

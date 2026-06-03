@@ -74,14 +74,14 @@ module.exports = async (req, res) => {
     try {
       const supabase = getSupabase();
       const { error: dbError } = await supabase
-        .from('retell_form_submission')
+        .from('retell_form_submissions')
         .insert({
-          name:    name,
-          company: company,
-          email:   email,
-          phone:   phone,
-          message: message,
-          call_id: result.body.call_id || null
+          form_first_name: name,
+          form_last_name:  '',
+          form_email:      email,
+          form_phone:      phone,
+          form_company:    company,
+          call_id:         result.body.call_id || null
         });
       if (dbError) console.error('[FinEX] Supabase insert error (contact form):', dbError.message);
     } catch (dbErr) {

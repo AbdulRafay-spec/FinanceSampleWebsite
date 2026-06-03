@@ -2348,7 +2348,7 @@
       fetch('/api/retell-inject', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ call_id: currentCallId, first_name: firstName, last_name: lastName, company: company, email: email, phone: fullPhone })
+        body: JSON.stringify({ call_id: currentCallId, first_name: firstName, last_name: lastName, company: company, email: email, phone: fullPhone, country_code: countryCode })
       })
       .then(function(r) {
         return r.json().then(function(body) {
