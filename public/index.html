@@ -2269,6 +2269,9 @@
       retellTrigger.classList.remove('active');
       retellRing.classList.remove('speaking');
       retellRing2.classList.remove('speaking');
+      if (retellCallActive && retellClient) {
+        try { retellClient.stopCall(); } catch (e) { }
+      }
     };
 
     retellTrigger.addEventListener('click', function() {
@@ -2471,6 +2474,11 @@
         currentCallId = null;
         hideLeadForm();
         window.closeRetellPanel();
+        if (retellClient) {
+          retellClient.removeAllListeners();
+          retellClient = null;
+        }
+        retellSdkLoaded = false;
       });
 
       retellClient.on('update', function(update) {
