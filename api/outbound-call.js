@@ -1,25 +1,6 @@
 'use strict';
 
 const { isRateLimited, getIp, isAllowedOrigin } = require('./_security');
-const { getSupabase } = require('./_supabase');
-
-async function callRetell(apiKey, agentId, fromNumber, phone, first_name, last_name, company, email, message) {
-  const r = await fetch('https://api.retellai.com/v2/create-phone-call', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer ' + apiKey,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      from_number: fromNumber,
-      to_number:   phone,
-      agent_id:    agentId,
-      retell_llm_dynamic_variables: { first_name, last_name, company, email, phone, message }
-    })
-  });
-  const body = await r.json().catch(() => ({}));
-  return { ok: r.ok, status: r.status, body };
-}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -46,50 +27,36 @@ module.exports = async (req, res) => {
     return res.status(400).json({ error: 'Invalid phone number' });
   }
 
-  const apiKey     = process.env.RETELL_API_KEY;
-  const agentId    = process.env.RETELL_OUTBOUND_AGENT_ID;
-  const fromNumber = process.env.RETELL_FROM_NUMBER;
+  const webhookUrl   = process.env.CAPTHER_WEBHOOK_URL;
+  const webhookToken = process.env.CAPTHER_WEBHOOK_TOKEN;
 
-  if (!apiKey || !agentId || !fromNumber) {
+  if (!webhookUrl || !webhookToken) {
     return res.status(500).json({ error: 'Outbound calling not configured on server' });
   }
 
   try {
-    let result = await callRetell(apiKey, agentId, fromNumber, phone, first_name, last_name, company, email, message);
+    const url = webhookUrl
+      + '?token=' + encodeURIComponent(webhookToken)
+      + '&type=outbound_contact_form';
 
-    // Retry once after 3s if Retell rejects — handles cold SIP re-registration after inactivity
-    if (!result.ok) {
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      result = await callRetell(apiKey, agentId, fromNumber, phone, first_name, last_name, company, email, message);
+    // Capther's webhook is the single source of truth for placing the call and
+    // recording the submission — it owns both, so this request replaces what
+    // used to be a direct call to Retell plus a direct Supabase insert here.
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ first_name, last_name, company, email, phone, message })
+    });
+
+    const data = await r.json().catch(() => ({}));
+
+    if (!r.ok) {
+      console.error('[FinEX] Capther webhook call failed:', JSON.stringify(data));
+      return res.status(500).json({ error: data.error || 'Failed to initiate call' });
     }
 
-    if (!result.ok) {
-      console.error('[FinEX] Retell outbound call failed:', JSON.stringify(result.body));
-      return res.status(500).json({ error: result.body.error_message || 'Failed to initiate call', retell: result.body });
-    }
-
-    console.log('[FinEX] Retell outbound call created:', JSON.stringify(result.body));
-
-    // Save to Supabase — fire and forget (don't block the response)
-    try {
-      const supabase = getSupabase();
-      const { error: dbError } = await supabase
-        .from('retell_form_submissions')
-        .insert({
-          form_first_name: first_name,
-          form_last_name:  last_name,
-          form_email:      email,
-          form_phone:      phone,
-          form_company:    company,
-          message:         message,
-          call_id:         result.body.call_id || null
-        });
-      if (dbError) console.error('[FinEX] Supabase insert error (contact form):', dbError.message);
-    } catch (dbErr) {
-      console.error('[FinEX] Supabase unavailable (contact form):', dbErr.message);
-    }
-
-    res.json({ success: true, call_id: result.body.call_id, call_status: result.body.call_status });
+    console.log('[FinEX] Outbound call requested via Capther:', JSON.stringify(data));
+    res.json({ success: true, call_id: data.call_id });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
